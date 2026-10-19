@@ -11,7 +11,6 @@ import {
   Sparkles,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { StatusLabel } from '../components/StatusLabel'
 import { de } from '../i18n/de'
 
 const SPEICHER_KEY = 'nexus.seitenleiste.eingeklappt'
@@ -21,6 +20,7 @@ const eintraege: { pfad: string; titel: string; icon: LucideIcon; ende?: boolean
   { pfad: '/projekte', titel: de.nav.projekte.titel, icon: FolderKanban },
   { pfad: '/ki', titel: de.nav.ki.titel, icon: Sparkles },
   { pfad: '/ideen', titel: de.nav.ideen.titel, icon: Lightbulb },
+  { pfad: '/wissen', titel: de.nav.wissen.titel, icon: BookOpen },
 ]
 
 function ladeZustand(): boolean {
@@ -31,8 +31,7 @@ function ladeZustand(): boolean {
   }
 }
 
-const basis =
-  'flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors'
+const basis = 'flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors'
 
 export function Sidebar() {
   const [eingeklappt, setEingeklappt] = useState(ladeZustand)
@@ -82,20 +81,6 @@ export function Sidebar() {
             {eingeklappt ? null : <span className="truncate">{titel}</span>}
           </NavLink>
         ))}
-
-        <div
-          aria-disabled="true"
-          title={eingeklappt ? `${de.nav.wissen.titel} (${de.status.bald})` : undefined}
-          className={`${basis} cursor-not-allowed text-nx-muted/60`}
-        >
-          <BookOpen size={16} className="shrink-0" />
-          {eingeklappt ? null : (
-            <>
-              <span className="flex-1 truncate">{de.nav.wissen.titel}</span>
-              <StatusLabel art="bald" />
-            </>
-          )}
-        </div>
 
         <NavLink
           to="/einstellungen"

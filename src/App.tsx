@@ -6,6 +6,7 @@ import { KiArbeitsbereich } from './pages/KiArbeitsbereich'
 import { ProjektDetail } from './pages/ProjektDetail'
 import { Projekte } from './pages/Projekte'
 import { Uebersicht } from './pages/Uebersicht'
+import { Wissen } from './pages/Wissen'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="projekte/:id" element={<ProjektDetail />} />
         <Route path="ki" element={<KiArbeitsbereich />} />
         <Route path="ideen" element={<Ideen />} />
+        <Route path="wissen" element={<Wissen />} />
         <Route path="einstellungen" element={<Einstellungen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

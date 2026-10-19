@@ -6,6 +6,7 @@ const ziele: Record<string, string> = {
   p: '/projekte',
   k: '/ki',
   i: '/ideen',
+  w: '/wissen',
 }
 
 function inEingabefeld(ziel: EventTarget | null): boolean {

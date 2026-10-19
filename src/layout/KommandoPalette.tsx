@@ -9,6 +9,7 @@ const seiten = [
   { pfad: '/projekte', ...de.nav.projekte },
   { pfad: '/ki', ...de.nav.ki },
   { pfad: '/ideen', ...de.nav.ideen },
+  { pfad: '/wissen', ...de.nav.wissen },
   { pfad: '/einstellungen', ...de.nav.einstellungen },
 ]
 

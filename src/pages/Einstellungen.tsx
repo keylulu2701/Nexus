@@ -14,6 +14,7 @@ const kuerzel = [
   de.kuerzel.projekte,
   de.kuerzel.ki,
   de.kuerzel.ideen,
+  de.wissen.kuerzel,
 ]
 
 export function Einstellungen() {
