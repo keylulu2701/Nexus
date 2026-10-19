@@ -1,6 +1,11 @@
+import { useRef, useState } from 'react'
+import type { ChangeEvent } from 'react'
+import { Download, Upload } from 'lucide-react'
+import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { PageHeader } from '../components/PageHeader'
 import { StatusLabel } from '../components/StatusLabel'
+import { backupEinspielen, backupErstellen } from '../data/backup'
 import { de } from '../i18n/de'
 
 const kuerzel = [
@@ -12,9 +17,48 @@ const kuerzel = [
 ]
 
 export function Einstellungen() {
+  const dateiRef = useRef<HTMLInputElement>(null)
+  const [meldung, setMeldung] = useState('')
+
+  async function einspielen(e: ChangeEvent<HTMLInputElement>) {
+    const datei = e.target.files?.[0]
+    e.target.value = ''
+    if (!datei) return
+    if (!window.confirm(de.einstellungen.importFrage)) return
+    if (await backupEinspielen(datei)) {
+      setMeldung(de.einstellungen.importErfolg)
+      window.setTimeout(() => window.location.reload(), 1200)
+    } else {
+      setMeldung(de.einstellungen.importFehler)
+    }
+  }
+
   return (
     <div className="grid max-w-2xl gap-6">
       <PageHeader titel={de.nav.einstellungen.titel} raum={de.nav.einstellungen.raum} />
+
+      <Card className="grid gap-3">
+        <h2 className="text-sm font-semibold">{de.einstellungen.backup}</h2>
+        <p className="text-sm text-nx-muted">{de.einstellungen.backupText}</p>
+        <div className="flex items-center gap-2">
+          <Button onClick={backupErstellen}>
+            <Download size={16} />
+            {de.einstellungen.exportieren}
+          </Button>
+          <Button variante="sekundaer" onClick={() => dateiRef.current?.click()}>
+            <Upload size={16} />
+            {de.einstellungen.importieren}
+          </Button>
+          <input
+            ref={dateiRef}
+            type="file"
+            accept="application/json,.json"
+            onChange={einspielen}
+            className="hidden"
+          />
+        </div>
+        {meldung ? <p role="status" className="text-sm text-nx-cyan">{meldung}</p> : null}
+      </Card>
 
       <Card className="grid gap-3">
         <h2 className="text-sm font-semibold">{de.einstellungen.kuerzel}</h2>

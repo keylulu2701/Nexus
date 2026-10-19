@@ -17,12 +17,20 @@ export const ideenStati = ['Offen', 'In Arbeit', 'Erledigt'] as const
 export type IdeePrioritaet = (typeof ideenPrioritaeten)[number]
 export type IdeeStatus = (typeof ideenStati)[number]
 
+export type AufgabeStatus = 'Offen' | 'In Arbeit' | 'Erledigt'
+export const aufgabenStati: AufgabeStatus[] = ['Offen', 'In Arbeit', 'Erledigt']
+
 export type Aufgabe = {
   id: string
   text: string
   erledigt: boolean
+  status?: AufgabeStatus
   erstelltAm: number
   erledigtAm?: number
+}
+
+export function aufgabenStatus(a: Aufgabe): AufgabeStatus {
+  return a.status ?? (a.erledigt ? 'Erledigt' : 'Offen')
 }
 
 export type Projekt = {
@@ -146,25 +154,38 @@ export function projektLoeschen(id: string) {
 export function aufgabeHinzufuegen(projektId: string, text: string) {
   const p = projektStore.lesen().find((x) => x.id === projektId)
   if (!p) return
-  const a: Aufgabe = { id: neueId(), text, erledigt: false, erstelltAm: Date.now() }
+  const a: Aufgabe = {
+    id: neueId(),
+    text,
+    erledigt: false,
+    status: 'Offen',
+    erstelltAm: Date.now(),
+  }
   projektAendern(projektId, (x) => ({ ...x, aufgaben: [...x.aufgaben, a] }))
   protokoll(`${p.name}: Aufgabe „${text}“ hinzugefügt`)
+}
+
+export function aufgabeStatusSetzen(projektId: string, aufgabeId: string, status: AufgabeStatus) {
+  const p = projektStore.lesen().find((x) => x.id === projektId)
+  const a = p?.aufgaben.find((x) => x.id === aufgabeId)
+  if (!p || !a || aufgabenStatus(a) === status) return
+  const erledigt = status === 'Erledigt'
+  projektAendern(projektId, (x) => ({
+    ...x,
+    aufgaben: x.aufgaben.map((t) =>
+      t.id === aufgabeId
+        ? { ...t, status, erledigt, erledigtAm: erledigt ? Date.now() : undefined }
+        : t,
+    ),
+  }))
+  if (erledigt) protokoll(`${p.name}: Aufgabe „${a.text}“ erledigt`)
 }
 
 export function aufgabeUmschalten(projektId: string, aufgabeId: string) {
   const p = projektStore.lesen().find((x) => x.id === projektId)
   const a = p?.aufgaben.find((x) => x.id === aufgabeId)
-  if (!p || !a) return
-  const jetztErledigt = !a.erledigt
-  projektAendern(projektId, (x) => ({
-    ...x,
-    aufgaben: x.aufgaben.map((t) =>
-      t.id === aufgabeId
-        ? { ...t, erledigt: jetztErledigt, erledigtAm: jetztErledigt ? Date.now() : undefined }
-        : t,
-    ),
-  }))
-  if (jetztErledigt) protokoll(`${p.name}: Aufgabe „${a.text}“ erledigt`)
+  if (!a) return
+  aufgabeStatusSetzen(projektId, aufgabeId, aufgabenStatus(a) === 'Erledigt' ? 'Offen' : 'Erledigt')
 }
 
 export function aufgabeLoeschen(projektId: string, aufgabeId: string) {
@@ -217,7 +238,10 @@ export function berechneHinweise(projekte: Projekt[], ideen: Idee[]): Hinweis[] 
   if (hoch > 0) {
     h.push({
       id: 'ideen-hoch',
-      text: hoch === 1 ? '1 Idee mit hoher Priorität ist noch offen.' : `${hoch} Ideen mit hoher Priorität sind noch offen.`,
+      text:
+        hoch === 1
+          ? '1 Idee mit hoher Priorität ist noch offen.'
+          : `${hoch} Ideen mit hoher Priorität sind noch offen.`,
     })
   }
   return h.slice(0, 5)
