@@ -10,6 +10,8 @@
 - Schritt 1: Projekt aufgesetzt (Vite, Tailwind, Router, Icons)
 - Schritt 2: Designsystem (Tokens in src/index.css, Komponenten in src/components)
 - Schritt 3: App-Shell (de.ts, PageHeader, Seitengerüste, Sidebar mit Einklappen und localStorage, Header, Router, Kommando-Palette mit Strg+K, Kürzel G+U/P/K/I)
+- Schritt 5: Projekte (Liste, Suche, Filter, Detailseite mit Aufgaben, Mock-Daten)
+- Schritt 6: KI-Arbeitsbereich (nur Oberfläche, Demo-Hinweis, Beispiel-Diff mit Ansehen/Übernehmen/Ablehnen)
 
 ## Als Nächstes
 - Schritt 4: Übersicht mit Mock-Daten (4 Kennzahlen, Zuletzt verwendet, KI-Hinweise, Schnellaktionen, Aktivitäts-Feed)

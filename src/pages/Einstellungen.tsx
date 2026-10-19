@@ -1,11 +1,47 @@
+import { Card } from '../components/Card'
 import { PageHeader } from '../components/PageHeader'
+import { StatusLabel } from '../components/StatusLabel'
 import { de } from '../i18n/de'
+
+const kuerzel = [
+  de.kuerzel.palette,
+  de.kuerzel.uebersicht,
+  de.kuerzel.projekte,
+  de.kuerzel.ki,
+  de.kuerzel.ideen,
+]
 
 export function Einstellungen() {
   return (
-    <div>
+    <div className="grid max-w-2xl gap-6">
       <PageHeader titel={de.nav.einstellungen.titel} raum={de.nav.einstellungen.raum} />
-      <p className="mt-6 text-sm text-nx-muted">{de.platzhalter.seiteInArbeit}</p>
+
+      <Card className="grid gap-3">
+        <h2 className="text-sm font-semibold">{de.einstellungen.kuerzel}</h2>
+        <ul className="grid gap-2">
+          {kuerzel.map((k) => (
+            <li key={k.tasten} className="flex items-center justify-between gap-4 text-sm">
+              <span className="text-nx-muted">{k.text}</span>
+              <span className="rounded-sm border border-nx-line bg-nx-bg px-2 py-1 font-mono text-xs">
+                {k.tasten}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
+      <Card className="grid gap-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">{de.einstellungen.integrationen}</h2>
+          <StatusLabel art="nichtVerbunden" />
+        </div>
+        <p className="text-sm text-nx-muted">{de.einstellungen.integrationenText}</p>
+      </Card>
+
+      <Card className="grid gap-3">
+        <h2 className="text-sm font-semibold">{de.einstellungen.speicher}</h2>
+        <p className="text-sm text-nx-muted">{de.einstellungen.speicherText}</p>
+      </Card>
     </div>
   )
 }
