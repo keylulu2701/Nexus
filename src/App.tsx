@@ -1,29 +1,53 @@
-function App() {
-  const farben = [
-    { name: 'nx-bg', klasse: 'bg-nx-bg' },
-    { name: 'nx-panel', klasse: 'bg-nx-panel' },
-    { name: 'nx-violet', klasse: 'bg-nx-violet' },
-    { name: 'nx-cyan', klasse: 'bg-nx-cyan' },
-    { name: 'nx-green', klasse: 'bg-nx-green' },
-  ]
+import { Plus } from 'lucide-react'
+import { Badge } from './components/Badge'
+import { Button } from './components/Button'
+import { Card } from './components/Card'
+import { Input } from './components/Input'
+import { StatusLabel } from './components/StatusLabel'
 
+function App() {
   return (
     <div className="min-h-screen p-8">
       <h1 className="text-xl font-semibold">NEXUS Designsystem</h1>
-      <p className="mt-1 text-sm text-nx-muted">Farben und Schriften</p>
+      <p className="mt-1 text-sm text-nx-muted">Basis-Bausteine</p>
 
-      <div className="mt-6 flex gap-4">
-        {farben.map((f) => (
-          <div key={f.name} className="w-32">
-            <div className={`h-16 rounded-lg border border-nx-line ${f.klasse}`} />
-            <p className="mt-2 font-mono text-xs text-nx-muted">{f.name}</p>
+      <div className="mt-6 grid max-w-2xl gap-4">
+        <Card className="grid gap-3">
+          <p className="text-xs text-nx-muted">Buttons</p>
+          <div className="flex gap-3">
+            <Button>
+              <Plus size={16} />
+              Neue Idee
+            </Button>
+            <Button variante="sekundaer">Sekundär</Button>
+            <Button variante="ghost">Ghost</Button>
+            <Button disabled>Deaktiviert</Button>
           </div>
-        ))}
-      </div>
+        </Card>
 
-      <div className="mt-8 rounded-lg border border-nx-line bg-nx-panel p-4">
-        <p className="text-sm">Dies ist Inter, die Schrift der Oberfläche.</p>
-        <p className="mt-2 font-mono text-sm text-nx-cyan">Dies ist JetBrains Mono.</p>
+        <Card className="grid gap-3">
+          <p className="text-xs text-nx-muted">Badges</p>
+          <div className="flex gap-2">
+            <Badge>Neutral</Badge>
+            <Badge farbe="violet">KI</Badge>
+            <Badge farbe="cyan">GDScript</Badge>
+            <Badge farbe="green">Aktiv</Badge>
+          </div>
+        </Card>
+
+        <Card className="grid gap-3">
+          <p className="text-xs text-nx-muted">Status-Labels</p>
+          <div className="flex gap-2">
+            <StatusLabel art="demo" />
+            <StatusLabel art="nichtVerbunden" />
+            <StatusLabel art="bald" />
+          </div>
+        </Card>
+
+        <Card className="grid gap-3">
+          <p className="text-xs text-nx-muted">Eingabefeld</p>
+          <Input placeholder="Projekte durchsuchen" />
+        </Card>
       </div>
     </div>
   )
