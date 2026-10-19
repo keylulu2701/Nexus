@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+@theme {
+  /* Farben (Dark Intelligence) */
+  --color-nx-bg: #0b0d14;
+  --color-nx-panel: #171824;
+  --color-nx-violet: #8b5cf6;
+  --color-nx-cyan: #67e8f9;
+  --color-nx-green: #86efac;
+  --color-nx-text: #f5f3ff;
+  --color-nx-muted: #9ca3af;
+  --color-nx-line: rgb(245 243 255 / 0.1);
+
+  /* Schriften */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Rundungen */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-nx-bg);
+    color: var(--color-nx-text);
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-nx-violet);
+    outline-offset: 2px;
+  }
+}
