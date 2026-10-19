@@ -1,6 +1,8 @@
 export type ProjektTyp = 'Spiel' | 'Webseite' | 'App' | 'Experiment'
 export type ProjektStatus = 'Aktiv' | 'Pausiert' | 'Abgeschlossen'
 
+export type Aufgabe = { id: string; text: string; erledigt: boolean }
+
 export type Projekt = {
   id: string
   name: string
@@ -9,6 +11,16 @@ export type Projekt = {
   technologien: string[]
   status: ProjektStatus
   letzteAktivitaet: string
+  aufgaben: Aufgabe[]
+}
+
+export const typen: ProjektTyp[] = ['Spiel', 'Webseite', 'App', 'Experiment']
+export const stati: ProjektStatus[] = ['Aktiv', 'Pausiert', 'Abgeschlossen']
+
+export const statusFarbe: Record<ProjektStatus, 'green' | 'neutral' | 'cyan'> = {
+  Aktiv: 'green',
+  Pausiert: 'neutral',
+  Abgeschlossen: 'cyan',
 }
 
 // MOCK: Beispielprojekte, keine echten Daten
@@ -21,6 +33,12 @@ export const projekte: Projekt[] = [
     technologien: ['Godot', 'GDScript'],
     status: 'Aktiv',
     letzteAktivitaet: 'vor 2 Stunden',
+    aufgaben: [
+      { id: 't1', text: 'Raumgenerierung bauen', erledigt: true },
+      { id: 't2', text: 'Gegner-Spawn', erledigt: true },
+      { id: 't3', text: 'Kampfsystem verbessern', erledigt: false },
+      { id: 't4', text: 'Speicherstand', erledigt: false },
+    ],
   },
   {
     id: 'portfolio-seite',
@@ -30,6 +48,10 @@ export const projekte: Projekt[] = [
     technologien: ['React', 'TypeScript', 'Tailwind'],
     status: 'Aktiv',
     letzteAktivitaet: 'gestern',
+    aufgaben: [
+      { id: 't1', text: 'Startseite gestalten', erledigt: true },
+      { id: 't2', text: 'Kontaktformular', erledigt: false },
+    ],
   },
   {
     id: 'habit-tracker',
@@ -39,6 +61,10 @@ export const projekte: Projekt[] = [
     technologien: ['React', 'localStorage'],
     status: 'Pausiert',
     letzteAktivitaet: 'vor 5 Tagen',
+    aufgaben: [
+      { id: 't1', text: 'Gewohnheiten anlegen', erledigt: true },
+      { id: 't2', text: 'Wochenansicht', erledigt: false },
+    ],
   },
   {
     id: 'shader-labor',
@@ -48,6 +74,7 @@ export const projekte: Projekt[] = [
     technologien: ['Godot', 'GLSL'],
     status: 'Aktiv',
     letzteAktivitaet: 'vor 1 Woche',
+    aufgaben: [],
   },
   {
     id: 'text-adventure',
@@ -57,5 +84,9 @@ export const projekte: Projekt[] = [
     technologien: ['TypeScript'],
     status: 'Abgeschlossen',
     letzteAktivitaet: 'vor 3 Wochen',
+    aufgaben: [
+      { id: 't1', text: 'Geschichte schreiben', erledigt: true },
+      { id: 't2', text: 'Veröffentlichen', erledigt: true },
+    ],
   },
 ]

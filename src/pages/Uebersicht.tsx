@@ -37,7 +37,7 @@ export function Uebersicht() {
       <div className="grid grid-cols-4 gap-4">
         {kennzahlen.map((k) => (
           <Card key={k.label} className="grid gap-2">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex h-6 items-center justify-between gap-2">
               <p className="text-sm text-nx-muted">{k.label}</p>
               {k.demo ? <StatusLabel art="demo" /> : null}
             </div>
@@ -66,7 +66,7 @@ export function Uebersicht() {
                 {zuletzt.map((p) => (
                   <li key={p.id}>
                     <Link
-                      to="/projekte"
+                     to={`/projekte/${p.id}`}
                       className="flex items-center justify-between gap-4 rounded-md px-3 py-2 transition-colors hover:bg-nx-text/10"
                     >
                       <span className="min-w-0">
