@@ -1,87 +1,50 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Lightbulb, Plus, Trash2 } from 'lucide-react'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Input } from '../components/Input'
 import { PageHeader } from '../components/PageHeader'
+import {
+  ideeAnlegen,
+  ideeLoeschen,
+  ideeStatusWechseln,
+  ideenPrioritaeten,
+  useIdeen,
+} from '../data/speicher'
+import type { IdeePrioritaet } from '../data/speicher'
 import { de } from '../i18n/de'
-
-const SPEICHER_KEY = 'nexus.ideen'
-
-const prioritaeten = ['Hoch', 'Mittel', 'Niedrig'] as const
-const stati = ['Offen', 'In Arbeit', 'Erledigt'] as const
-
-type Prioritaet = (typeof prioritaeten)[number]
-type IdeenStatus = (typeof stati)[number]
-type Idee = {
-  id: string
-  titel: string
-  tag: string
-  prioritaet: Prioritaet
-  status: IdeenStatus
-}
 
 const prioFarbe = { Hoch: 'violet', Mittel: 'cyan', Niedrig: 'neutral' } as const
 const statusFarbe = { Offen: 'neutral', 'In Arbeit': 'cyan', Erledigt: 'green' } as const
-
-function laden(): Idee[] {
-  try {
-    const roh = localStorage.getItem(SPEICHER_KEY)
-    const daten: unknown = roh ? JSON.parse(roh) : []
-    return Array.isArray(daten) ? (daten as Idee[]) : []
-  } catch {
-    return []
-  }
-}
 
 const auswahl =
   'h-9 rounded-md border border-nx-line bg-nx-bg px-3 text-sm text-nx-text [color-scheme:dark] hover:border-nx-text/25'
 
 export function Ideen() {
-  const [ideen, setIdeen] = useState<Idee[]>(laden)
-  const [formOffen, setFormOffen] = useState(false)
+  const ideen = useIdeen()
+  const [params, setParams] = useSearchParams()
+  const [formOffen, setFormOffen] = useState(() => params.get('neu') === '1')
   const [titel, setTitel] = useState('')
   const [tag, setTag] = useState('')
-  const [prio, setPrio] = useState<Prioritaet>('Mittel')
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(SPEICHER_KEY, JSON.stringify(ideen))
-    } catch {
-      // Speichern nicht möglich, egal
-    }
-  }, [ideen])
+  const [prio, setPrio] = useState<IdeePrioritaet>('Mittel')
 
   function formSchliessen() {
     setFormOffen(false)
     setTitel('')
     setTag('')
     setPrio('Mittel')
+    setParams({}, { replace: true })
   }
 
   function speichern(e: FormEvent) {
     e.preventDefault()
     const t = titel.trim()
     if (t === '') return
-    setIdeen((alt) => [
-      { id: String(Date.now()), titel: t, tag: tag.trim(), prioritaet: prio, status: 'Offen' },
-      ...alt,
-    ])
+    ideeAnlegen({ titel: t, tag: tag.trim(), prioritaet: prio })
     formSchliessen()
-  }
-
-  function statusWechseln(id: string) {
-    setIdeen((alt) =>
-      alt.map((i) =>
-        i.id === id ? { ...i, status: stati[(stati.indexOf(i.status) + 1) % stati.length] } : i,
-      ),
-    )
-  }
-
-  function loeschen(id: string) {
-    setIdeen((alt) => alt.filter((i) => i.id !== id))
   }
 
   return (
@@ -113,10 +76,10 @@ export function Ideen() {
                 {de.ideen.prioritaet}
                 <select
                   value={prio}
-                  onChange={(e) => setPrio(e.target.value as Prioritaet)}
+                  onChange={(e) => setPrio(e.target.value as IdeePrioritaet)}
                   className={auswahl}
                 >
-                  {prioritaeten.map((p) => (
+                  {ideenPrioritaeten.map((p) => (
                     <option key={p} value={p}>
                       {p}
                     </option>
@@ -163,7 +126,7 @@ export function Ideen() {
                   <Badge farbe={prioFarbe[i.prioritaet]}>{i.prioritaet}</Badge>
                   <button
                     type="button"
-                    onClick={() => statusWechseln(i.id)}
+                    onClick={() => ideeStatusWechseln(i.id)}
                     title={de.ideen.statusWechseln}
                     aria-label={`${de.ideen.statusWechseln}: ${i.status}`}
                     className="rounded-sm"
@@ -172,7 +135,7 @@ export function Ideen() {
                   </button>
                   <Button
                     variante="ghost"
-                    onClick={() => loeschen(i.id)}
+                    onClick={() => ideeLoeschen(i.id)}
                     aria-label={de.ideen.loeschen}
                     title={de.ideen.loeschen}
                   >

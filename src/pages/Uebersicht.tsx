@@ -1,18 +1,17 @@
 import { Link } from 'react-router-dom'
 import { Activity, ArrowRight, Check, FolderKanban, Lightbulb, Plus, Sparkles } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import { Badge } from '../components/Badge'
 import { Card } from '../components/Card'
 import { LinienChart } from '../components/Charts'
 import { PageHeader } from '../components/PageHeader'
-import { StatusLabel } from '../components/StatusLabel'
-import { zaehleOffeneIdeen } from '../data/ideenSpeicher'
-import { projekte, statusFarbe } from '../data/projects'
 import {
-  aktivitaeten,
-  kiAktivitaet,
-  kiHinweise,
-  } from '../data/uebersicht'
+  berechneHinweise,
+  statusFarbe,
+  useEreignisse,
+  useIdeen,
+  useProjekte,
+} from '../data/speicher'
+import { letzteMonate, vorZeit } from '../data/zeit'
 import { de } from '../i18n/de'
 
 const aktionsKarte =
@@ -20,11 +19,35 @@ const aktionsKarte =
 
 const kachel = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-md'
 
-const aktivitaetsIcons: LucideIcon[] = [Check, Lightbulb, FolderKanban, Sparkles, FolderKanban]
-
 export function Uebersicht() {
+  const projekte = useProjekte()
+  const ideen = useIdeen()
+  const ereignisse = useEreignisse()
+
   const aktive = projekte.filter((p) => p.status === 'Aktiv').length
-  const offeneIdeen = zaehleOffeneIdeen()
+  const offeneIdeen = ideen.filter((i) => i.status !== 'Erledigt').length
+  const offeneAufgaben = projekte.reduce(
+    (summe, p) => summe + p.aufgaben.filter((a) => !a.erledigt).length,
+    0,
+  )
+  const hinweise = berechneHinweise(projekte, ideen)
+  const zuletzt = [...projekte].sort((a, b) => b.geaendertAm - a.geaendertAm).slice(0, 5)
+
+  const monate = letzteMonate(6)
+  const monatsAufgaben = monate.map((m) =>
+    projekte.reduce(
+      (summe, p) =>
+        summe +
+        p.aufgaben.filter(
+          (a) => a.erledigtAm !== undefined && a.erledigtAm >= m.start && a.erledigtAm < m.ende,
+        ).length,
+      0,
+    ),
+  )
+  const monatsIdeen = monate.map(
+    (m) => ideen.filter((i) => i.erstelltAm >= m.start && i.erstelltAm < m.ende).length,
+  )
+  const hatDaten = [...monatsAufgaben, ...monatsIdeen].some((w) => w > 0)
 
   const kennzahlen = [
     {
@@ -33,7 +56,6 @@ export function Uebersicht() {
       info: de.uebersicht.info.projekte,
       icon: FolderKanban,
       stil: 'bg-nx-violet/25 text-nx-violet shadow-[0_0_16px_rgb(157_107_255/0.6)]',
-      demo: false,
     },
     {
       label: de.uebersicht.kennzahlen.aktiv,
@@ -41,7 +63,6 @@ export function Uebersicht() {
       info: de.uebersicht.info.aktiv,
       icon: Activity,
       stil: 'bg-nx-green/25 text-nx-green shadow-[0_0_16px_rgb(61_255_154/0.5)]',
-      demo: false,
     },
     {
       label: de.uebersicht.kennzahlen.ideen,
@@ -49,15 +70,13 @@ export function Uebersicht() {
       info: de.uebersicht.info.ideen,
       icon: Lightbulb,
       stil: 'bg-nx-cyan/25 text-nx-cyan shadow-[0_0_16px_rgb(34_229_255/0.55)]',
-      demo: false,
     },
     {
-      label: de.uebersicht.kennzahlen.ki,
-      wert: kiAktivitaet,
-      info: de.uebersicht.info.ki,
-      icon: Sparkles,
+      label: de.uebersicht.kennzahlen.aufgaben,
+      wert: offeneAufgaben,
+      info: de.uebersicht.info.aufgaben,
+      icon: Check,
       stil: 'bg-nx-violet/25 text-nx-violet shadow-[0_0_16px_rgb(157_107_255/0.6)]',
-      demo: true,
     },
   ]
 
@@ -71,14 +90,16 @@ export function Uebersicht() {
             {de.uebersicht.willkommen}
           </h2>
           <p className="mt-2 text-sm text-nx-muted">
-            {de.uebersicht.hero(aktive, offeneIdeen)}
+            {projekte.length === 0 && ideen.length === 0
+              ? de.uebersicht.heroLeer
+              : de.uebersicht.hero(aktive, offeneIdeen)}
           </p>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          <div
-            aria-disabled="true"
-            className={`${aktionsKarte} cursor-not-allowed border-nx-violet/40 bg-nx-violet/10 opacity-70 hover:brightness-100`}
+          <Link
+            to="/projekte?neu=1"
+            className={`${aktionsKarte} border-nx-violet/40 bg-nx-violet/10`}
           >
             <span className={`${kachel} bg-nx-violet/25 text-nx-violet`}>
               <Plus size={16} />
@@ -87,8 +108,8 @@ export function Uebersicht() {
               <span className="block text-sm font-medium">{de.uebersicht.neuesProjekt}</span>
               <span className="block text-xs text-nx-muted">{de.uebersicht.neuesProjektText}</span>
             </span>
-            <StatusLabel art="bald" />
-          </div>
+            <ArrowRight size={16} className="text-nx-muted" />
+          </Link>
 
           <Link to="/ki" className={`${aktionsKarte} border-nx-cyan/40 bg-nx-cyan/10`}>
             <span className={`${kachel} bg-nx-cyan/25 text-nx-cyan`}>
@@ -101,7 +122,7 @@ export function Uebersicht() {
             <ArrowRight size={16} className="text-nx-muted" />
           </Link>
 
-          <Link to="/ideen" className={`${aktionsKarte} border-nx-green/40 bg-nx-green/10`}>
+          <Link to="/ideen?neu=1" className={`${aktionsKarte} border-nx-green/40 bg-nx-green/10`}>
             <span className={`${kachel} bg-nx-green/25 text-nx-green`}>
               <Lightbulb size={16} />
             </span>
@@ -119,12 +140,9 @@ export function Uebersicht() {
           const Icon = k.icon
           return (
             <Card key={k.label} className="grid gap-3">
-              <div className="flex h-9 items-center justify-between">
-                <span className={`${kachel} ${k.stil}`}>
-                  <Icon size={16} />
-                </span>
-                {k.demo ? <StatusLabel art="demo" /> : null}
-              </div>
+              <span className={`${kachel} ${k.stil}`}>
+                <Icon size={16} />
+              </span>
               <p className="font-mono text-3xl font-medium">{k.wert}</p>
               <div>
                 <p className="text-sm">{k.label}</p>
@@ -137,54 +155,53 @@ export function Uebersicht() {
 
       <div className="grid grid-cols-3 gap-4">
         <Card className="col-span-2 grid content-start gap-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-sm font-semibold">{de.uebersicht.chartTitel}</h2>
-              <p className="mt-1 text-xs text-nx-muted">{de.uebersicht.chartUntertitel}</p>
-            </div>
-            <StatusLabel art="demo" />
+          <div>
+            <h2 className="text-sm font-semibold">{de.uebersicht.chartTitel}</h2>
+            <p className="mt-1 text-xs text-nx-muted">{de.uebersicht.chartUntertitel}</p>
           </div>
-          <LinienChart
-            labels={monatsLabels}
-            beschreibung={de.uebersicht.chartBeschreibung}
-            reihen={[
-              {
-                name: de.uebersicht.reiheAufgaben,
-                werte: monatsAufgaben,
-                klasse: 'text-nx-violet',
-                punkt: 'bg-nx-violet',
-              },
-              {
-                name: de.uebersicht.reiheIdeen,
-                werte: monatsIdeen,
-                klasse: 'text-nx-cyan',
-                punkt: 'bg-nx-cyan',
-              },
-            ]}
-          />
+          {hatDaten ? (
+            <LinienChart
+              labels={monate.map((m) => m.label)}
+              beschreibung={de.uebersicht.chartBeschreibung}
+              reihen={[
+                {
+                  name: de.uebersicht.reiheAufgaben,
+                  werte: monatsAufgaben,
+                  klasse: 'text-nx-violet',
+                  punkt: 'bg-nx-violet',
+                },
+                {
+                  name: de.uebersicht.reiheIdeen,
+                  werte: monatsIdeen,
+                  klasse: 'text-nx-cyan',
+                  punkt: 'bg-nx-cyan',
+                },
+              ]}
+            />
+          ) : (
+            <p className="py-16 text-center text-sm text-nx-muted">{de.uebersicht.chartLeer}</p>
+          )}
         </Card>
 
         <Card className="grid content-start gap-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">{de.uebersicht.feed}</h2>
-            <StatusLabel art="demo" />
-          </div>
-          <ul className="grid gap-4">
-            {aktivitaeten.map((a, i) => {
-              const Icon = aktivitaetsIcons[i % aktivitaetsIcons.length]
-              return (
-                <li key={a.id} className="flex items-start gap-3">
+          <h2 className="text-sm font-semibold">{de.uebersicht.feed}</h2>
+          {ereignisse.length === 0 ? (
+            <p className="text-sm text-nx-muted">{de.uebersicht.feedLeer}</p>
+          ) : (
+            <ul className="grid gap-4">
+              {ereignisse.slice(0, 6).map((e) => (
+                <li key={e.id} className="flex items-start gap-3">
                   <span className={`${kachel} bg-nx-text/10 text-nx-muted`}>
-                    <Icon size={16} />
+                    <Activity size={16} />
                   </span>
                   <span className="min-w-0 text-sm">
-                    {a.text}
-                    <span className="block text-xs text-nx-muted">{a.zeit}</span>
+                    {e.text}
+                    <span className="block text-xs text-nx-muted">{vorZeit(e.zeit)}</span>
                   </span>
                 </li>
-              )
-            })}
-          </ul>
+              ))}
+            </ul>
+          )}
         </Card>
       </div>
 
@@ -199,11 +216,11 @@ export function Uebersicht() {
               {de.uebersicht.alleProjekte}
             </Link>
           </div>
-          {projekte.length === 0 ? (
+          {zuletzt.length === 0 ? (
             <p className="text-sm text-nx-muted">{de.uebersicht.zuletztLeer}</p>
           ) : (
             <ul className="grid">
-              {projekte.slice(0, 5).map((p) => (
+              {zuletzt.map((p) => (
                 <li key={p.id}>
                   <Link
                     to={`/projekte/${p.id}`}
@@ -212,13 +229,13 @@ export function Uebersicht() {
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium">{p.name}</span>
                       <span className="block truncate text-xs text-nx-muted">
-                        {p.typ} · {p.technologien.join(', ')}
+                        {[p.typ, ...p.technologien].join(' · ')}
                       </span>
                     </span>
                     <span className="flex shrink-0 items-center gap-3">
                       <Badge farbe={statusFarbe[p.status]}>{p.status}</Badge>
                       <span className="w-24 text-right text-xs text-nx-muted">
-                        {p.letzteAktivitaet}
+                        {vorZeit(p.geaendertAm)}
                       </span>
                     </span>
                   </Link>
@@ -229,20 +246,24 @@ export function Uebersicht() {
         </Card>
 
         <div className="glow-violet grid content-start gap-3 rounded-lg border border-nx-violet/50 bg-nx-violet/10 p-4">
-          <div className="flex items-center justify-between">
+          <div>
             <h2 className="flex items-center gap-2 text-sm font-semibold">
               <Sparkles size={16} className="text-nx-violet" />
               {de.uebersicht.hinweise}
             </h2>
-            <StatusLabel art="demo" />
+            <p className="mt-1 text-xs text-nx-muted">{de.uebersicht.hinweiseText}</p>
           </div>
-          <ul className="grid gap-3">
-            {kiHinweise.map((h) => (
-              <li key={h.id} className="text-sm">
-                {h.text}
-              </li>
-            ))}
-          </ul>
+          {hinweise.length === 0 ? (
+            <p className="text-sm text-nx-muted">{de.uebersicht.hinweiseLeer}</p>
+          ) : (
+            <ul className="grid gap-3">
+              {hinweise.map((h) => (
+                <li key={h.id} className="text-sm">
+                  {h.text}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>
