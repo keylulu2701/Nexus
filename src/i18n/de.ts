@@ -15,6 +15,19 @@ export const de = {
     seitenleisteAusklappen: 'Seitenleiste ausklappen',
     hauptnavigation: 'Hauptnavigation',
   },
+  palette: {
+    titel: 'Kommando-Palette',
+    platzhalter: 'Seite suchen',
+    keineTreffer: 'Keine Treffer',
+    hinweis: 'Pfeiltasten wählen, Enter öffnet, Esc schließt',
+  },
+  kuerzel: {
+    palette: { tasten: 'Strg K', text: 'Kommando-Palette öffnen' },
+    uebersicht: { tasten: 'G dann U', text: 'Zur Übersicht' },
+    projekte: { tasten: 'G dann P', text: 'Zu den Projekten' },
+    ki: { tasten: 'G dann K', text: 'Zum KI-Arbeitsbereich' },
+    ideen: { tasten: 'G dann I', text: 'Zu den Ideen' },
+  },
   nav: {
     uebersicht: { titel: 'Übersicht', raum: 'Eingangshalle' },
     projekte: { titel: 'Projekte', raum: 'Werkstatt' },
