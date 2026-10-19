@@ -7,16 +7,15 @@
 
 ## Fertig
 - Schritt 0: Vorbereitung (Node v24, npm, Git, Ordner angelegt)
-- Schritt 1: Projekt aufgesetzt (Vite, Tailwind, Router, Icons), dunkle Startseite mit "NEXUS" läuft, Git-Commit
-- Schritt 3 Teil 1: de.ts (alle Texte), PageHeader, fünf Seitengerüste in src/pages
-- Schritt 3 Teil 2: Seitenleiste und Kopfleiste
-- Schritt 3 Teil 3: Navigation mit React Router
-- Schritt 3 Teil 4: Kommando-Palette und Tastenkürzel
-md
+- Schritt 1: Projekt aufgesetzt (Vite, Tailwind, Router, Icons)
+- Schritt 2: Designsystem (Tokens in src/index.css, Komponenten in src/components)
+- Schritt 3: App-Shell (de.ts, PageHeader, Seitengerüste, Sidebar mit Einklappen und localStorage, Header, Router, Kommando-Palette mit Strg+K, Kürzel G+U/P/K/I)
 
 ## Als Nächstes
-- Schritt 2: Designsystem (Farben, Schriften, Abstände als Tokens, Basis-Komponenten)
-
+- Schritt 4: Übersicht mit Mock-Daten (4 Kennzahlen, Zuletzt verwendet, KI-Hinweise, Schnellaktionen, Aktivitäts-Feed)
+- Schritt 5: Projekte
+- Schritt 6: KI-Arbeitsbereich
+- Schritt 7: Ideen und Einstellungen
 ## Entscheidungen
 - Linter: Oxlint (Voreinstellung)
 - Arbeit in kleinen Schritten, nach jedem Schritt Halt und Git-Commit

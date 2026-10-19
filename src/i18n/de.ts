@@ -28,6 +28,23 @@ export const de = {
     ki: { tasten: 'G dann K', text: 'Zum KI-Arbeitsbereich' },
     ideen: { tasten: 'G dann I', text: 'Zu den Ideen' },
   },
+  uebersicht: {
+    kennzahlen: {
+      projekte: 'Projekte',
+      aktiv: 'Aktive Projekte',
+      ideen: 'Offene Ideen',
+      ki: 'KI-Aktivität',
+    },
+    zuletzt: 'Zuletzt verwendet',
+    zuletztLeer: 'Noch keine Projekte. Lege dein erstes an.',
+    alleProjekte: 'Alle Projekte',
+    hinweise: 'KI-Hinweise',
+    schnellaktionen: 'Schnellaktionen',
+    neuesProjekt: 'Neues Projekt',
+    kiFragen: 'KI fragen',
+    ideeErfassen: 'Idee erfassen',
+    feed: 'Aktivität',
+  },
   nav: {
     uebersicht: { titel: 'Übersicht', raum: 'Eingangshalle' },
     projekte: { titel: 'Projekte', raum: 'Werkstatt' },
