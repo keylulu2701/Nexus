@@ -5,7 +5,9 @@ import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { PageHeader } from '../components/PageHeader'
 import { StatusLabel } from '../components/StatusLabel'
-import { aktivitaeten, kiAktivitaet, kiHinweise, offeneIdeen } from '../data/uebersicht'
+import { zaehleOffeneIdeen } from '../data/ideenSpeicher'
+import { aktivitaeten, kiAktivitaet, kiHinweise } from '../data/uebersicht'
+  const offeneIdeen = zaehleOffeneIdeen()
 import { projekte } from '../data/projects'
 import type { ProjektStatus } from '../data/projects'
 import { de } from '../i18n/de'
@@ -26,7 +28,7 @@ export function Uebersicht() {
   const kennzahlen = [
     { label: de.uebersicht.kennzahlen.projekte, wert: projekte.length, demo: false },
     { label: de.uebersicht.kennzahlen.aktiv, wert: aktive, demo: false },
-    { label: de.uebersicht.kennzahlen.ideen, wert: offeneIdeen, demo: true },
+    { label: de.uebersicht.kennzahlen.ideen, wert: offeneIdeen, demo: false },
     { label: de.uebersicht.kennzahlen.ki, wert: kiAktivitaet, demo: true },
   ]
 
