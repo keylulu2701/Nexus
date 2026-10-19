@@ -12,6 +12,7 @@
 - Schritt 3 Teil 2: Seitenleiste und Kopfleiste
 - Schritt 3 Teil 3: Navigation mit React Router
 - Schritt 3 Teil 4: Kommando-Palette und Tastenkürzel
+md
 
 ## Als Nächstes
 - Schritt 2: Designsystem (Farben, Schriften, Abstände als Tokens, Basis-Komponenten)

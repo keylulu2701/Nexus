@@ -8,6 +8,13 @@ export const de = {
     nichtVerbunden: 'Nicht verbunden',
     bald: 'Bald',
   },
+  shell: {
+    suchen: 'Suchen',
+    suchenKuerzel: 'Strg K',
+    seitenleisteEinklappen: 'Seitenleiste einklappen',
+    seitenleisteAusklappen: 'Seitenleiste ausklappen',
+    hauptnavigation: 'Hauptnavigation',
+  },
   nav: {
     uebersicht: { titel: 'Übersicht', raum: 'Eingangshalle' },
     projekte: { titel: 'Projekte', raum: 'Werkstatt' },
