@@ -8,6 +8,10 @@
 ## Fertig
 - Schritt 0: Vorbereitung (Node v24, npm, Git, Ordner angelegt)
 - Schritt 1: Projekt aufgesetzt (Vite, Tailwind, Router, Icons), dunkle Startseite mit "NEXUS" läuft, Git-Commit
+- Schritt 3 Teil 1: de.ts (alle Texte), PageHeader, fünf Seitengerüste in src/pages
+- Schritt 3 Teil 2: Seitenleiste und Kopfleiste
+- Schritt 3 Teil 3: Navigation mit React Router
+- Schritt 3 Teil 4: Kommando-Palette und Tastenkürzel
 
 ## Als Nächstes
 - Schritt 2: Designsystem (Farben, Schriften, Abstände als Tokens, Basis-Komponenten)
