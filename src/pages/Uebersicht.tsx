@@ -20,7 +20,8 @@ const aktionsKarte =
 const kachel = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-md'
 
 export function Uebersicht() {
-  const projekte = useProjekte()
+  const alleProjekte = useProjekte()
+  const projekte = alleProjekte.filter((p) => !p.archiviert)
   const ideen = useIdeen()
   const ereignisse = useEreignisse()
 

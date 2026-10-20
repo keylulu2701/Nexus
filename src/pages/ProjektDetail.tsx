@@ -14,6 +14,7 @@ import {
   aufgabeLoeschen,
   aufgabeUmschalten,
   aufgabenStatus,
+  projektArchivieren,
   projektLoeschen,
   projektStatusSetzen,
   stati,
@@ -126,6 +127,10 @@ export function ProjektDetail() {
         }
       />
 
+      {projekt.archiviert ? (
+        <p className="text-sm text-nx-cyan">{de.projekte.archiviertHinweis}</p>
+      ) : null}
+
       <div className="grid grid-cols-3 gap-6">
         <Card className="col-span-2 grid content-start gap-3">
           <h2 className="text-sm font-semibold">{de.projekte.beschreibung}</h2>
@@ -218,10 +223,18 @@ export function ProjektDetail() {
         )}
       </Card>
 
-      <Button variante="ghost" onClick={loeschen} className="justify-self-start">
-        <Trash2 size={16} />
-        {de.projekte.loeschen}
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          variante="sekundaer"
+          onClick={() => projektArchivieren(projekt.id, !projekt.archiviert)}
+        >
+          {projekt.archiviert ? de.projekte.wiederherstellen : de.projekte.archivieren}
+        </Button>
+        <Button variante="ghost" onClick={loeschen}>
+          <Trash2 size={16} />
+          {de.projekte.loeschen}
+        </Button>
+      </div>
     </div>
   )
 }

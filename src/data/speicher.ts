@@ -43,6 +43,7 @@ export type Projekt = {
   erstelltAm: number
   geaendertAm: number
   aufgaben: Aufgabe[]
+  archiviert?: boolean
 }
 
 export type Idee = {
@@ -142,6 +143,13 @@ export function projektStatusSetzen(id: string, status: ProjektStatus) {
   if (!p || p.status === status) return
   projektAendern(id, (x) => ({ ...x, status }))
   protokoll(`${p.name}: Status auf „${status}“ gesetzt`)
+}
+
+export function projektArchivieren(id: string, archiviert: boolean) {
+  const p = projektStore.lesen().find((x) => x.id === id)
+  if (!p || Boolean(p.archiviert) === archiviert) return
+  projektAendern(id, (x) => ({ ...x, archiviert }))
+  protokoll(`Projekt „${p.name}“ ${archiviert ? 'archiviert' : 'wiederhergestellt'}`)
 }
 
 export function projektLoeschen(id: string) {
