@@ -1,0 +1,13 @@
+appId: de.nexus.app
+productName: NEXUS
+directories:
+  output: release
+files:
+  - dist/**/*
+  - electron/**/*
+win:
+  target: nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true

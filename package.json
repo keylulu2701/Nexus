@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "app": "vite build && electron ."
+    "app": "vite build && electron .",
+    "installer": "vite build && electron-builder"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -24,6 +25,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "electron": "^44.9.1",
+    "electron-builder": "^26.15.3",
     "oxlint": "^1.88.0",
     "typescript": "~7.0.2",
     "vite": "^8.3.4"
