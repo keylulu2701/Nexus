@@ -12,5 +12,3 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
-  installerIcon: build/icon.ico
-  uninstallerIcon: build/icon.ico
