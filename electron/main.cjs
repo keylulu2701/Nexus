@@ -3,6 +3,7 @@ const path = require('path')
 
 function fensterErstellen() {
   const fenster = new BrowserWindow({
+    icon: require('path').join(__dirname, '..', 'build', 'icon.png'),
     width: 1440,
     height: 900,
     minWidth: 1100,
