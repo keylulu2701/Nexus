@@ -44,6 +44,7 @@ export type Projekt = {
   geaendertAm: number
   aufgaben: Aufgabe[]
   archiviert?: boolean
+  ordnerPfad?: string
 }
 
 export type Idee = {
@@ -150,6 +151,17 @@ export function projektArchivieren(id: string, archiviert: boolean) {
   if (!p || Boolean(p.archiviert) === archiviert) return
   projektAendern(id, (x) => ({ ...x, archiviert }))
   protokoll(`Projekt „${p.name}“ ${archiviert ? 'archiviert' : 'wiederhergestellt'}`)
+}
+
+export function projektOrdnerSetzen(id: string, ordnerPfad: string | undefined) {
+  const p = projektStore.lesen().find((x) => x.id === id)
+  if (!p || p.ordnerPfad === ordnerPfad) return
+  projektAendern(id, (x) => ({ ...x, ordnerPfad }))
+  protokoll(
+    ordnerPfad
+      ? `${p.name}: Ordner verknüpft`
+      : `${p.name}: Ordner-Verknüpfung gelöst`,
+  )
 }
 
 export function projektLoeschen(id: string) {

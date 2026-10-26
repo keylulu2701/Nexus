@@ -7,8 +7,9 @@ import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Input } from '../components/Input'
 import { KanbanBoard } from '../components/KanbanBoard'
+import { GitAnzeige, OrdnerKarte } from '../components/OrdnerKarte'
 import { PageHeader } from '../components/PageHeader'
-import { StatusLabel } from '../components/StatusLabel'
+import { useOrdner } from '../data/ordner'
 import {
   aufgabeHinzufuegen,
   aufgabeLoeschen,
@@ -48,6 +49,7 @@ export function ProjektDetail() {
   const projekt = projekte.find((p) => p.id === id)
   const [neueAufgabe, setNeueAufgabe] = useState('')
   const [ansicht, setAnsicht] = useState<Ansicht>(ladeAnsicht)
+  const { zustand: ordnerZustand, neuLaden } = useOrdner(projekt?.ordnerPfad)
 
   if (!projekt) {
     return (
@@ -157,12 +159,17 @@ export function ProjektDetail() {
 
           <Card className="grid gap-3">
             <h2 className="text-sm font-semibold">{de.projekte.gitStatus}</h2>
-            <div>
-              <StatusLabel art="nichtVerbunden" />
-            </div>
+            <GitAnzeige zustand={ordnerZustand} />
           </Card>
         </div>
       </div>
+
+      <OrdnerKarte
+        projektId={projekt.id}
+        ordnerPfad={projekt.ordnerPfad}
+        zustand={ordnerZustand}
+        neuLaden={neuLaden}
+      />
 
       <Card className="grid gap-4">
         <div className="flex items-center justify-between gap-4">
