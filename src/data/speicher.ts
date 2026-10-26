@@ -139,6 +139,21 @@ export function projektAnlegen(eingabe: {
   return p.id
 }
 
+export function projektBearbeiten(
+  id: string,
+  eingabe: {
+    name: string
+    typ: ProjektTyp
+    beschreibung: string
+    technologien: string[]
+  },
+) {
+  const p = projektStore.lesen().find((x) => x.id === id)
+  if (!p) return
+  projektAendern(id, (x) => ({ ...x, ...eingabe }))
+  protokoll(`Projekt „${eingabe.name}“ bearbeitet`)
+}
+
 export function projektStatusSetzen(id: string, status: ProjektStatus) {
   const p = projektStore.lesen().find((x) => x.id === id)
   if (!p || p.status === status) return
