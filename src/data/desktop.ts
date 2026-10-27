@@ -15,6 +15,13 @@ export type OrdnerInfo = {
   hatGit: boolean
 }
 
+export type OrdnerErkennung = {
+  name: string
+  typ: string
+  beschreibung: string
+  technologien: string[]
+}
+
 export type GitInfo = {
   branch: string
   geaendert: number
@@ -40,6 +47,7 @@ type Fehler = { fehler: string }
 type NexusDesktop = {
   ordnerWaehlen: () => Promise<string | null>
   ordnerLesen: (pfad: string) => Promise<OrdnerInfo | Fehler>
+  ordnerErkennen: (pfad: string) => Promise<OrdnerErkennung | Fehler>
   gitStatus: (pfad: string) => Promise<GitInfo | Fehler>
   imExplorerOeffnen: (pfad: string) => Promise<{ ok: true } | Fehler>
   inVSCodeOeffnen: (pfad: string) => Promise<{ ok: true } | Fehler>

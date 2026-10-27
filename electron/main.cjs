@@ -106,6 +106,145 @@ function fensterErstellen() {
   fenster.webContents.once('did-finish-load', () => updateSuchen())
 }
 
+// ---------- Ordner erkennen ----------
+
+function jsonLesen(datei) {
+  try {
+    const roh = fs.readFileSync(datei, 'utf8').replace(/^\uFEFF/, '')
+    return JSON.parse(roh)
+  } catch {
+    return null
+  }
+}
+
+function endungenZaehlen(wurzel) {
+  const zaehler = {}
+  let gesehen = 0
+
+  function lauf(ordner, tiefe) {
+    if (tiefe > 3 || gesehen > 3000) return
+    let eintraege
+    try {
+      eintraege = fs.readdirSync(ordner, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const eintrag of eintraege) {
+      if (gesehen > 3000) return
+      if (eintrag.isDirectory()) {
+        if (!IGNORIERT.has(eintrag.name) && !eintrag.name.startsWith('.')) {
+          lauf(path.join(ordner, eintrag.name), tiefe + 1)
+        }
+      } else {
+        gesehen++
+        const ende = path.extname(eintrag.name).toLowerCase()
+        if (ende) zaehler[ende] = (zaehler[ende] || 0) + 1
+      }
+    }
+  }
+
+  lauf(wurzel, 0)
+  return zaehler
+}
+
+const SPRACHEN = {
+  '.gd': 'GDScript',
+  '.cs': 'C#',
+  '.py': 'Python',
+  '.rs': 'Rust',
+  '.go': 'Go',
+  '.java': 'Java',
+  '.cpp': 'C++',
+  '.lua': 'Lua',
+  '.ts': 'TypeScript',
+  '.tsx': 'TypeScript',
+  '.js': 'JavaScript',
+}
+
+const PAKETE = {
+  react: 'React',
+  vue: 'Vue',
+  svelte: 'Svelte',
+  next: 'Next.js',
+  astro: 'Astro',
+  vite: 'Vite',
+  tailwindcss: 'Tailwind CSS',
+  electron: 'Electron',
+  typescript: 'TypeScript',
+  express: 'Express',
+  three: 'Three.js',
+  phaser: 'Phaser',
+}
+
+function erkennen(ordnerPfad) {
+  const namen = fs.readdirSync(ordnerPfad)
+  const istGodot = namen.includes('project.godot')
+  const paket = namen.includes('package.json') ? jsonLesen(path.join(ordnerPfad, 'package.json')) : null
+  const hatIndexHtml = namen.includes('index.html')
+
+  let name = path.basename(ordnerPfad)
+  let beschreibung = ''
+  const technologien = []
+
+  if (istGodot) {
+    technologien.push('Godot')
+    try {
+      const text = fs.readFileSync(path.join(ordnerPfad, 'project.godot'), 'utf8')
+      const n = text.match(/config\/name="([^"]+)"/)
+      const b = text.match(/config\/description="([^"]*)"/)
+      if (n && n[1].trim()) name = n[1].trim()
+      if (b && b[1].trim()) beschreibung = b[1].trim()
+    } catch {
+      // Datei nicht lesbar: Ordnername behalten
+    }
+  }
+
+  let abhaengigkeiten = {}
+  if (paket) {
+    if (typeof paket.name === 'string' && paket.name.trim() && !istGodot) name = paket.name.trim()
+    if (typeof paket.description === 'string' && paket.description.trim() && !beschreibung) {
+      beschreibung = paket.description.trim()
+    }
+    abhaengigkeiten = { ...(paket.dependencies || {}), ...(paket.devDependencies || {}) }
+    for (const [schluessel, anzeige] of Object.entries(PAKETE)) {
+      if (abhaengigkeiten[schluessel]) technologien.push(anzeige)
+    }
+  }
+
+  const zaehler = endungenZaehlen(ordnerPfad)
+  const sprachen = Object.entries(zaehler)
+    .filter(([ende]) => SPRACHEN[ende])
+    .sort((a, b) => b[1] - a[1])
+    .map(([ende]) => SPRACHEN[ende])
+  for (const s of sprachen) {
+    if (!technologien.includes(s)) technologien.push(s)
+  }
+  if (technologien.includes('TypeScript')) {
+    const i = technologien.indexOf('JavaScript')
+    if (i >= 0) technologien.splice(i, 1)
+  }
+
+  let typ = 'Experiment'
+  if (abhaengigkeiten.electron || abhaengigkeiten['@tauri-apps/api'] || abhaengigkeiten.expo || abhaengigkeiten['react-native']) {
+    typ = 'App'
+  } else if (istGodot) {
+    typ = 'Spiel'
+  } else if (paket || hatIndexHtml) {
+    typ = 'Webseite'
+  }
+
+  return { name, typ, beschreibung, technologien: technologien.slice(0, 6) }
+}
+
+ipcMain.handle('ordner:erkennen', async (_event, ordnerPfad) => {
+  if (!istOrdner(ordnerPfad)) return { fehler: 'Ordner nicht gefunden.' }
+  try {
+    return erkennen(ordnerPfad)
+  } catch {
+    return { fehler: 'Ordner konnte nicht analysiert werden.' }
+  }
+})
+
 // ---------- Ordner und Git ----------
 
 ipcMain.handle('ordner:waehlen', async () => {

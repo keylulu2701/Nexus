@@ -18,4 +18,6 @@ export const ordnerTexte = {
   weitere: (n: number) => `… und ${n} weitere`,
   ordnerLeer: 'Der Ordner ist leer.',
   inhalt: 'Inhalt',
+  ausOrdner: 'Aus Ordner anlegen',
+  erkanntHinweis: 'Aus dem Ordner erkannt. Prüfe die Angaben und passe sie bei Bedarf an.',
 }

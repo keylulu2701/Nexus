@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Archive, FolderKanban, Plus } from 'lucide-react'
+import { Archive, FolderKanban, FolderOpen, Plus } from 'lucide-react'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { Input } from '../components/Input'
 import { PageHeader } from '../components/PageHeader'
+import { desktop, istFehler } from '../data/desktop'
 import {
   aufgabenStatus,
   projektAnlegen,
+  projektOrdnerSetzen,
   stati,
   statusFarbe,
   typen,
@@ -18,6 +20,7 @@ import {
 import type { Projekt, ProjektTyp } from '../data/speicher'
 import { vorZeit } from '../data/zeit'
 import { de } from '../i18n/de'
+import { ordnerTexte } from '../i18n/ordner'
 
 const auswahl =
   'h-9 rounded-md border border-nx-line bg-nx-bg px-3 text-sm text-nx-text [color-scheme:dark] hover:border-nx-text/25'
@@ -114,6 +117,8 @@ export function Projekte() {
   const [typ, setTyp] = useState<ProjektTyp>('Spiel')
   const [beschreibung, setBeschreibung] = useState('')
   const [technologien, setTechnologien] = useState('')
+  const [ordnerPfad, setOrdnerPfad] = useState<string | null>(null)
+  const [ordnerMeldung, setOrdnerMeldung] = useState('')
 
   const anzahlArchiv = projekte.filter((p) => p.archiviert).length
   const begriff = suche.trim().toLowerCase()
@@ -143,7 +148,26 @@ export function Projekte() {
     setBeschreibung('')
     setTechnologien('')
     setTyp('Spiel')
+    setOrdnerPfad(null)
     setParams({}, { replace: true })
+  }
+
+  async function ausOrdnerAnlegen() {
+    if (!desktop) return
+    setOrdnerMeldung('')
+    const pfad = await desktop.ordnerWaehlen()
+    if (!pfad) return
+    const ergebnis = await desktop.ordnerErkennen(pfad)
+    if (istFehler(ergebnis)) {
+      setOrdnerMeldung(ergebnis.fehler)
+      return
+    }
+    setName(ergebnis.name)
+    setTyp((typen as string[]).includes(ergebnis.typ) ? (ergebnis.typ as ProjektTyp) : 'Experiment')
+    setBeschreibung(ergebnis.beschreibung)
+    setTechnologien(ergebnis.technologien.join(', '))
+    setOrdnerPfad(pfad)
+    setFormOffen(true)
   }
 
   function anlegen(e: FormEvent) {
@@ -159,6 +183,7 @@ export function Projekte() {
         .map((t) => t.trim())
         .filter(Boolean),
     })
+    if (ordnerPfad) projektOrdnerSetzen(id, ordnerPfad)
     navigate(`/projekte/${id}`)
   }
 
@@ -189,16 +214,38 @@ export function Projekte() {
         titel={de.nav.projekte.titel}
         raum={de.nav.projekte.raum}
         aktion={
-          <Button onClick={() => setFormOffen(true)} disabled={formOffen}>
-            <Plus size={16} />
-            {de.projekte.neu}
-          </Button>
+          <div className="flex items-center gap-2">
+            {desktop ? (
+              <Button variante="sekundaer" onClick={ausOrdnerAnlegen}>
+                <FolderOpen size={16} />
+                {ordnerTexte.ausOrdner}
+              </Button>
+            ) : null}
+            <Button onClick={() => setFormOffen(true)} disabled={formOffen}>
+              <Plus size={16} />
+              {de.projekte.neu}
+            </Button>
+          </div>
         }
       />
+
+      {ordnerMeldung ? (
+        <p role="status" className="text-sm text-nx-cyan">
+          {ordnerMeldung}
+        </p>
+      ) : null}
 
       {formOffen ? (
         <Card>
           <form onSubmit={anlegen} className="grid gap-4">
+            {ordnerPfad ? (
+              <div className="grid gap-1">
+                <p className="text-xs text-nx-cyan">{ordnerTexte.erkanntHinweis}</p>
+                <p className="truncate font-mono text-xs text-nx-muted" title={ordnerPfad}>
+                  {ordnerPfad}
+                </p>
+              </div>
+            ) : null}
             <div className="grid grid-cols-2 gap-4">
               <label className="grid gap-2 text-sm text-nx-muted">
                 {de.projekte.name}
@@ -251,10 +298,18 @@ export function Projekte() {
             <p className="mt-1 text-sm text-nx-muted">{de.projekte.leerText}</p>
           </div>
           {formOffen ? null : (
-            <Button onClick={() => setFormOffen(true)}>
-              <Plus size={16} />
-              {de.projekte.neu}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setFormOffen(true)}>
+                <Plus size={16} />
+                {de.projekte.neu}
+              </Button>
+              {desktop ? (
+                <Button variante="sekundaer" onClick={ausOrdnerAnlegen}>
+                  <FolderOpen size={16} />
+                  {ordnerTexte.ausOrdner}
+                </Button>
+              ) : null}
+            </div>
           )}
         </Card>
       ) : (
