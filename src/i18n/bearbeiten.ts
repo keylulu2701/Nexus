@@ -8,4 +8,7 @@ export const bearbeitenTexte = {
   technologienHinweis: 'Mit Komma trennen, zum Beispiel: Godot, GDScript',
   speichern: 'Speichern',
   abbrechen: 'Abbrechen',
+  ideeTitel: 'Idee bearbeiten',
+  geloescht: (titel: string) => `„${titel}“ gelöscht.`,
+  rueckgaengig: 'Rückgängig',
 }

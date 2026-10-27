@@ -236,6 +236,16 @@ export function ideeAnlegen(eingabe: { titel: string; tag: string; prioritaet: I
   protokoll(`Neue Idee erfasst: „${i.titel}“`)
 }
 
+export function ideeBearbeiten(
+  id: string,
+  eingabe: { titel: string; tag: string; prioritaet: IdeePrioritaet },
+) {
+  const i = ideenStore.lesen().find((x) => x.id === id)
+  if (!i) return
+  ideenStore.schreiben(ideenStore.lesen().map((x) => (x.id === id ? { ...x, ...eingabe } : x)))
+  protokoll(`Idee „${eingabe.titel}“ bearbeitet`)
+}
+
 export function ideeStatusWechseln(id: string) {
   const i = ideenStore.lesen().find((x) => x.id === id)
   if (!i) return
@@ -244,8 +254,21 @@ export function ideeStatusWechseln(id: string) {
   if (neu === 'Erledigt') protokoll(`Idee „${i.titel}“ erledigt`)
 }
 
-export function ideeLoeschen(id: string) {
-  ideenStore.schreiben(ideenStore.lesen().filter((x) => x.id !== id))
+export function ideeLoeschen(id: string): { idee: Idee; index: number } | undefined {
+  const liste = ideenStore.lesen()
+  const index = liste.findIndex((x) => x.id === id)
+  if (index < 0) return undefined
+  const idee = liste[index]
+  ideenStore.schreiben(liste.filter((x) => x.id !== id))
+  return { idee, index }
+}
+
+export function ideeWiederherstellen(idee: Idee, index: number) {
+  const liste = ideenStore.lesen()
+  if (liste.some((x) => x.id === idee.id)) return
+  const neu = [...liste]
+  neu.splice(Math.min(index, neu.length), 0, idee)
+  ideenStore.schreiben(neu)
 }
 
 export function berechneHinweise(projekte: Projekt[], ideen: Idee[]): Hinweis[] {
