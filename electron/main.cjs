@@ -14,14 +14,37 @@ function istOrdner(p) {
   }
 }
 
-// Automatische Updates über GitHub (nur in der installierten App)
-function updatesPruefen(fenster) {
-  if (!app.isPackaged) return
+// ---------- Updates ----------
 
+let updateStatus = { status: 'leer' }
+
+function statusSetzen(neu) {
+  updateStatus = neu
+  BrowserWindow.getAllWindows().forEach((w) => {
+    if (!w.isDestroyed()) w.webContents.send('update:status', neu)
+  })
+}
+
+function updaterEinrichten() {
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
 
+  autoUpdater.on('checking-for-update', () => statusSetzen({ status: 'sucht' }))
+  autoUpdater.on('update-available', (info) =>
+    statusSetzen({ status: 'laedt', version: info.version, prozent: 0 }),
+  )
+  autoUpdater.on('update-not-available', () => statusSetzen({ status: 'aktuell' }))
+  autoUpdater.on('download-progress', (p) =>
+    statusSetzen({
+      status: 'laedt',
+      version: updateStatus.version,
+      prozent: Math.round(p.percent),
+    }),
+  )
+  autoUpdater.on('error', () => statusSetzen({ status: 'fehler' }))
   autoUpdater.on('update-downloaded', async (info) => {
+    statusSetzen({ status: 'bereit', version: info.version })
+    const fenster = BrowserWindow.getAllWindows()[0]
     const antwort = await dialog.showMessageBox(fenster, {
       type: 'info',
       buttons: ['Jetzt neu starten', 'Später'],
@@ -33,13 +56,28 @@ function updatesPruefen(fenster) {
     })
     if (antwort.response === 0) autoUpdater.quitAndInstall()
   })
-
-  autoUpdater.on('error', () => {
-    // Kein Internet oder kein Release gefunden: still ignorieren
-  })
-
-  autoUpdater.checkForUpdates().catch(() => {})
 }
+
+function updateSuchen() {
+  if (!app.isPackaged) {
+    statusSetzen({ status: 'nurInstalliert' })
+    return
+  }
+  if (updateStatus.status === 'sucht' || updateStatus.status === 'laedt') return
+  if (updateStatus.status === 'bereit') return
+  autoUpdater.checkForUpdates().catch(() => statusSetzen({ status: 'fehler' }))
+}
+
+ipcMain.handle('app:info', () => ({ version: app.getVersion(), installiert: app.isPackaged }))
+ipcMain.handle('update:status', () => updateStatus)
+ipcMain.handle('update:pruefen', () => {
+  updateSuchen()
+})
+ipcMain.handle('update:installieren', () => {
+  if (updateStatus.status === 'bereit') autoUpdater.quitAndInstall()
+})
+
+// ---------- Fenster ----------
 
 function fensterErstellen() {
   const fenster = new BrowserWindow({
@@ -65,10 +103,11 @@ function fensterErstellen() {
     }
   })
 
-  fenster.webContents.once('did-finish-load', () => updatesPruefen(fenster))
+  fenster.webContents.once('did-finish-load', () => updateSuchen())
 }
 
-// Ordner wählen
+// ---------- Ordner und Git ----------
+
 ipcMain.handle('ordner:waehlen', async () => {
   const antwort = await dialog.showOpenDialog({
     title: 'Projektordner wählen',
@@ -78,7 +117,6 @@ ipcMain.handle('ordner:waehlen', async () => {
   return antwort.filePaths[0]
 })
 
-// Inhalt der obersten Ebene lesen
 ipcMain.handle('ordner:lesen', async (_event, ordnerPfad) => {
   if (!istOrdner(ordnerPfad)) return { fehler: 'Ordner nicht gefunden.' }
   try {
@@ -116,7 +154,6 @@ ipcMain.handle('ordner:lesen', async (_event, ordnerPfad) => {
   }
 })
 
-// Git-Status abfragen
 ipcMain.handle('git:status', async (_event, ordnerPfad) => {
   if (!istOrdner(ordnerPfad)) return { fehler: 'Ordner nicht gefunden.' }
   return new Promise((resolve) => {
@@ -139,14 +176,12 @@ ipcMain.handle('git:status', async (_event, ordnerPfad) => {
   })
 })
 
-// Im Explorer öffnen
 ipcMain.handle('ordner:imExplorer', async (_event, ordnerPfad) => {
   if (!istOrdner(ordnerPfad)) return { fehler: 'Ordner nicht gefunden.' }
   const meldung = await shell.openPath(ordnerPfad)
   return meldung ? { fehler: meldung } : { ok: true }
 })
 
-// In VS Code öffnen
 ipcMain.handle('ordner:inVSCode', async (_event, ordnerPfad) => {
   if (!istOrdner(ordnerPfad)) return { fehler: 'Ordner nicht gefunden.' }
   return new Promise((resolve) => {
@@ -156,6 +191,8 @@ ipcMain.handle('ordner:inVSCode', async (_event, ordnerPfad) => {
     setTimeout(() => resolve({ ok: true }), 600)
   })
 })
+
+// ---------- Start ----------
 
 const hauptInstanz = app.requestSingleInstanceLock()
 if (!hauptInstanz) {
@@ -169,7 +206,10 @@ if (!hauptInstanz) {
     }
   })
 
-  app.whenReady().then(fensterErstellen)
+  app.whenReady().then(() => {
+    updaterEinrichten()
+    fensterErstellen()
+  })
 
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()

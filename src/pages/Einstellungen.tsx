@@ -5,6 +5,7 @@ import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { PageHeader } from '../components/PageHeader'
 import { StatusLabel } from '../components/StatusLabel'
+import { UpdateKarte } from '../components/UpdateKarte'
 import { backupEinspielen, backupErstellen } from '../data/backup'
 import { de } from '../i18n/de'
 
@@ -37,6 +38,8 @@ export function Einstellungen() {
   return (
     <div className="grid max-w-2xl gap-6">
       <PageHeader titel={de.nav.einstellungen.titel} raum={de.nav.einstellungen.raum} />
+
+      <UpdateKarte />
 
       <Card className="grid gap-3">
         <h2 className="text-sm font-semibold">{de.einstellungen.backup}</h2>

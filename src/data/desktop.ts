@@ -21,6 +21,20 @@ export type GitInfo = {
   sauber: boolean
 }
 
+export type AppInfo = {
+  version: string
+  installiert: boolean
+}
+
+export type UpdateStatus =
+  | { status: 'leer' }
+  | { status: 'nurInstalliert' }
+  | { status: 'sucht' }
+  | { status: 'aktuell' }
+  | { status: 'laedt'; version?: string; prozent?: number }
+  | { status: 'bereit'; version: string }
+  | { status: 'fehler' }
+
 type Fehler = { fehler: string }
 
 type NexusDesktop = {
@@ -29,6 +43,11 @@ type NexusDesktop = {
   gitStatus: (pfad: string) => Promise<GitInfo | Fehler>
   imExplorerOeffnen: (pfad: string) => Promise<{ ok: true } | Fehler>
   inVSCodeOeffnen: (pfad: string) => Promise<{ ok: true } | Fehler>
+  appInfo: () => Promise<AppInfo>
+  updateStatus: () => Promise<UpdateStatus>
+  updatePruefen: () => Promise<void>
+  updateInstallieren: () => Promise<void>
+  beiUpdateStatus: (rueckruf: (status: UpdateStatus) => void) => () => void
 }
 
 declare global {
