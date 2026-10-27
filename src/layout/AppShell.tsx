@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { Outlet } from 'react-router-dom'
+import { RueckgaengigLeiste } from '../components/RueckgaengigLeiste'
 import { Header } from './Header'
 import { KommandoPalette } from './KommandoPalette'
 import { Sidebar } from './Sidebar'
@@ -21,6 +22,7 @@ export function AppShell() {
         </main>
       </div>
       <KommandoPalette offen={paletteOffen} onSchliessen={() => setPaletteOffen(false)} />
+      <RueckgaengigLeiste />
     </div>
   )
 }

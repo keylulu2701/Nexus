@@ -113,6 +113,38 @@ function protokoll(text: string) {
   ereignisStore.schreiben([{ id: neueId(), text, zeit: Date.now() }, ...alt].slice(0, 50))
 }
 
+// ---------- Lösch-Hinweis mit Rückgängig (nur im Arbeitsspeicher) ----------
+
+export type LoeschHinweis = { id: number; text: string; rueckgaengig: () => void }
+
+let aktuellerHinweis: LoeschHinweis | null = null
+let hinweisZaehler = 0
+const hinweisHoerer = new Set<() => void>()
+
+function hinweisSetzen(text: string, rueckgaengig: () => void) {
+  hinweisZaehler += 1
+  aktuellerHinweis = { id: hinweisZaehler, text, rueckgaengig }
+  hinweisHoerer.forEach((h) => h())
+}
+
+export function hinweisLeeren() {
+  if (aktuellerHinweis === null) return
+  aktuellerHinweis = null
+  hinweisHoerer.forEach((h) => h())
+}
+
+function hinweisAbonnieren(h: () => void) {
+  hinweisHoerer.add(h)
+  return () => {
+    hinweisHoerer.delete(h)
+  }
+}
+
+export const useLoeschHinweis = () =>
+  useSyncExternalStore(hinweisAbonnieren, () => aktuellerHinweis)
+
+// ---------- Projekte ----------
+
 function projektAendern(id: string, f: (p: Projekt) => Projekt) {
   projektStore.schreiben(
     projektStore.lesen().map((p) => (p.id === id ? { ...f(p), geaendertAm: Date.now() } : p)),
@@ -179,12 +211,26 @@ export function projektOrdnerSetzen(id: string, ordnerPfad: string | undefined) 
   )
 }
 
-export function projektLoeschen(id: string) {
-  const p = projektStore.lesen().find((x) => x.id === id)
-  if (!p) return
-  projektStore.schreiben(projektStore.lesen().filter((x) => x.id !== id))
-  protokoll(`Projekt „${p.name}“ gelöscht`)
+function projektWiederherstellen(projekt: Projekt, index: number) {
+  const liste = projektStore.lesen()
+  if (liste.some((x) => x.id === projekt.id)) return
+  const neu = [...liste]
+  neu.splice(Math.min(index, neu.length), 0, projekt)
+  projektStore.schreiben(neu)
+  protokoll(`Projekt „${projekt.name}“ wiederhergestellt`)
 }
+
+export function projektLoeschen(id: string) {
+  const liste = projektStore.lesen()
+  const index = liste.findIndex((x) => x.id === id)
+  if (index < 0) return
+  const p = liste[index]
+  projektStore.schreiben(liste.filter((x) => x.id !== id))
+  protokoll(`Projekt „${p.name}“ gelöscht`)
+  hinweisSetzen(`Projekt „${p.name}“ gelöscht.`, () => projektWiederherstellen(p, index))
+}
+
+// ---------- Aufgaben ----------
 
 export function aufgabeHinzufuegen(projektId: string, text: string) {
   const p = projektStore.lesen().find((x) => x.id === projektId)
@@ -223,12 +269,30 @@ export function aufgabeUmschalten(projektId: string, aufgabeId: string) {
   aufgabeStatusSetzen(projektId, aufgabeId, aufgabenStatus(a) === 'Erledigt' ? 'Offen' : 'Erledigt')
 }
 
+function aufgabeWiederherstellen(projektId: string, aufgabe: Aufgabe, index: number) {
+  const p = projektStore.lesen().find((x) => x.id === projektId)
+  if (!p || p.aufgaben.some((t) => t.id === aufgabe.id)) return
+  projektAendern(projektId, (x) => {
+    const neu = [...x.aufgaben]
+    neu.splice(Math.min(index, neu.length), 0, aufgabe)
+    return { ...x, aufgaben: neu }
+  })
+}
+
 export function aufgabeLoeschen(projektId: string, aufgabeId: string) {
+  const p = projektStore.lesen().find((x) => x.id === projektId)
+  if (!p) return
+  const index = p.aufgaben.findIndex((t) => t.id === aufgabeId)
+  if (index < 0) return
+  const a = p.aufgaben[index]
   projektAendern(projektId, (x) => ({
     ...x,
     aufgaben: x.aufgaben.filter((t) => t.id !== aufgabeId),
   }))
+  hinweisSetzen(`Aufgabe „${a.text}“ gelöscht.`, () => aufgabeWiederherstellen(projektId, a, index))
 }
+
+// ---------- Ideen ----------
 
 export function ideeAnlegen(eingabe: { titel: string; tag: string; prioritaet: IdeePrioritaet }) {
   const i: Idee = { id: neueId(), ...eingabe, status: 'Offen', erstelltAm: Date.now() }
@@ -254,22 +318,24 @@ export function ideeStatusWechseln(id: string) {
   if (neu === 'Erledigt') protokoll(`Idee „${i.titel}“ erledigt`)
 }
 
-export function ideeLoeschen(id: string): { idee: Idee; index: number } | undefined {
-  const liste = ideenStore.lesen()
-  const index = liste.findIndex((x) => x.id === id)
-  if (index < 0) return undefined
-  const idee = liste[index]
-  ideenStore.schreiben(liste.filter((x) => x.id !== id))
-  return { idee, index }
-}
-
-export function ideeWiederherstellen(idee: Idee, index: number) {
+function ideeWiederherstellen(idee: Idee, index: number) {
   const liste = ideenStore.lesen()
   if (liste.some((x) => x.id === idee.id)) return
   const neu = [...liste]
   neu.splice(Math.min(index, neu.length), 0, idee)
   ideenStore.schreiben(neu)
 }
+
+export function ideeLoeschen(id: string) {
+  const liste = ideenStore.lesen()
+  const index = liste.findIndex((x) => x.id === id)
+  if (index < 0) return
+  const idee = liste[index]
+  ideenStore.schreiben(liste.filter((x) => x.id !== id))
+  hinweisSetzen(`Idee „${idee.titel}“ gelöscht.`, () => ideeWiederherstellen(idee, index))
+}
+
+// ---------- Hinweise für die Übersicht ----------
 
 export function berechneHinweise(projekte: Projekt[], ideen: Idee[]): Hinweis[] {
   const h: Hinweis[] = []

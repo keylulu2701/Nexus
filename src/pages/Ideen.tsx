@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Lightbulb, Pencil, Plus, Trash2, Undo2 } from 'lucide-react'
+import { Lightbulb, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -12,7 +12,6 @@ import {
   ideeBearbeiten,
   ideeLoeschen,
   ideeStatusWechseln,
-  ideeWiederherstellen,
   ideenPrioritaeten,
   useIdeen,
 } from '../data/speicher'
@@ -25,8 +24,6 @@ const statusFarbe = { Offen: 'neutral', 'In Arbeit': 'cyan', Erledigt: 'green' }
 
 const auswahl =
   'h-9 rounded-md border border-nx-line bg-nx-bg px-3 text-sm text-nx-text [color-scheme:dark] hover:border-nx-text/25'
-
-const RUECKGAENGIG_MS = 8000
 
 function IdeeBearbeiten({ idee, onFertig }: { idee: Idee; onFertig: () => void }) {
   const [titel, setTitel] = useState(idee.titel)
@@ -96,13 +93,6 @@ export function Ideen() {
   const [tag, setTag] = useState('')
   const [prio, setPrio] = useState<IdeePrioritaet>('Mittel')
   const [bearbeiteId, setBearbeiteId] = useState<string | null>(null)
-  const [geloescht, setGeloescht] = useState<{ idee: Idee; index: number } | null>(null)
-
-  useEffect(() => {
-    if (!geloescht) return
-    const timer = window.setTimeout(() => setGeloescht(null), RUECKGAENGIG_MS)
-    return () => window.clearTimeout(timer)
-  }, [geloescht])
 
   function formSchliessen() {
     setFormOffen(false)
@@ -121,15 +111,8 @@ export function Ideen() {
   }
 
   function loeschen(id: string) {
-    const ergebnis = ideeLoeschen(id)
-    if (ergebnis) setGeloescht(ergebnis)
+    ideeLoeschen(id)
     if (bearbeiteId === id) setBearbeiteId(null)
-  }
-
-  function rueckgaengig() {
-    if (!geloescht) return
-    ideeWiederherstellen(geloescht.idee, geloescht.index)
-    setGeloescht(null)
   }
 
   return (
@@ -183,20 +166,6 @@ export function Ideen() {
           </form>
         </Card>
       ) : null}
-
-      <div role="status" aria-live="polite">
-        {geloescht ? (
-          <Card className="flex items-center justify-between gap-4">
-            <p className="min-w-0 truncate text-sm text-nx-muted">
-              {bearbeitenTexte.geloescht(geloescht.idee.titel)}
-            </p>
-            <Button variante="sekundaer" onClick={rueckgaengig}>
-              <Undo2 size={16} />
-              {bearbeitenTexte.rueckgaengig}
-            </Button>
-          </Card>
-        ) : null}
-      </div>
 
       {ideen.length === 0 ? (
         <Card className="grid justify-items-start gap-3">
