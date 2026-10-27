@@ -5,6 +5,10 @@ directories:
 files:
   - dist/**/*
   - electron/**/*
+publish:
+  provider: github
+  owner: keylulu2701
+  repo: Nexus
 win:
   target: nsis
   icon: build/icon.png
@@ -12,3 +16,4 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
+  artifactName: NEXUS-Setup-${version}.${ext}

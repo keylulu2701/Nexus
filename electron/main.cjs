@@ -1,4 +1,5 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron')
+const { autoUpdater } = require('electron-updater')
 const path = require('path')
 const fs = require('fs')
 const { execFile, spawn } = require('child_process')
@@ -11,6 +12,33 @@ function istOrdner(p) {
   } catch {
     return false
   }
+}
+
+// Automatische Updates über GitHub (nur in der installierten App)
+function updatesPruefen(fenster) {
+  if (!app.isPackaged) return
+
+  autoUpdater.autoDownload = true
+  autoUpdater.autoInstallOnAppQuit = true
+
+  autoUpdater.on('update-downloaded', async (info) => {
+    const antwort = await dialog.showMessageBox(fenster, {
+      type: 'info',
+      buttons: ['Jetzt neu starten', 'Später'],
+      defaultId: 0,
+      cancelId: 1,
+      title: 'Update bereit',
+      message: `NEXUS ${info.version} ist bereit.`,
+      detail: 'Starte NEXUS neu, um das Update zu installieren.',
+    })
+    if (antwort.response === 0) autoUpdater.quitAndInstall()
+  })
+
+  autoUpdater.on('error', () => {
+    // Kein Internet oder kein Release gefunden: still ignorieren
+  })
+
+  autoUpdater.checkForUpdates().catch(() => {})
 }
 
 function fensterErstellen() {
@@ -36,6 +64,8 @@ function fensterErstellen() {
       fenster.webContents.toggleDevTools()
     }
   })
+
+  fenster.webContents.once('did-finish-load', () => updatesPruefen(fenster))
 }
 
 // Ordner wählen
