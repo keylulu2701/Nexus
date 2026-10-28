@@ -1,7 +1,17 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Archive, FolderKanban, FolderOpen, Plus } from 'lucide-react'
+import {
+  Archive,
+  FlaskConical,
+  FolderOpen,
+  Gamepad2,
+  Globe,
+  Plus,
+  Search,
+  Smartphone,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -23,13 +33,60 @@ import { de } from '../i18n/de'
 import { ordnerTexte } from '../i18n/ordner'
 
 const auswahl =
-  'h-9 rounded-md border border-nx-line bg-nx-bg px-3 text-sm text-nx-text [color-scheme:dark] hover:border-nx-text/25'
+  'h-9 rounded-md border border-nx-line bg-nx-bg/70 px-3 text-sm text-nx-text [color-scheme:dark] transition-colors hover:border-nx-violet/40'
 
-const typStil: Record<ProjektTyp, { kopf: string; balken: string; plural: string }> = {
-  Spiel: { kopf: 'from-nx-violet/35 to-nx-violet/5', balken: 'bg-nx-violet', plural: 'Spiele' },
-  Webseite: { kopf: 'from-nx-cyan/35 to-nx-cyan/5', balken: 'bg-nx-cyan', plural: 'Webseiten' },
-  App: { kopf: 'from-nx-green/35 to-nx-green/5', balken: 'bg-nx-green', plural: 'Apps' },
-  Experiment: { kopf: 'from-nx-text/20 to-nx-text/5', balken: 'bg-nx-muted', plural: 'Experimente' },
+type TypStil = {
+  icon: LucideIcon
+  kachel: string
+  balken: string
+  punkt: string
+  plural: string
+  hover: string
+  kopf: string
+  badge: 'violet' | 'cyan' | 'green' | 'magenta'
+}
+
+const typStil: Record<ProjektTyp, TypStil> = {
+  Spiel: {
+    icon: Gamepad2,
+    kachel: 'bg-nx-violet/15 text-nx-violet',
+    balken: 'bg-nx-violet',
+    punkt: 'bg-nx-violet',
+    plural: 'Spiele',
+    hover: 'hover:border-nx-violet/50 hover:shadow-[0_0_28px_-10px_rgb(157_107_255/0.7)]',
+    kopf: 'from-nx-violet/20',
+    badge: 'violet',
+  },
+  Webseite: {
+    icon: Globe,
+    kachel: 'bg-nx-cyan/15 text-nx-cyan',
+    balken: 'bg-nx-cyan',
+    punkt: 'bg-nx-cyan',
+    plural: 'Webseiten',
+    hover: 'hover:border-nx-cyan/50 hover:shadow-[0_0_28px_-10px_rgb(34_229_255/0.6)]',
+    kopf: 'from-nx-cyan/20',
+    badge: 'cyan',
+  },
+  App: {
+    icon: Smartphone,
+    kachel: 'bg-nx-green/15 text-nx-green',
+    balken: 'bg-nx-green',
+    punkt: 'bg-nx-green',
+    plural: 'Apps',
+    hover: 'hover:border-nx-green/50 hover:shadow-[0_0_28px_-10px_rgb(61_255_154/0.55)]',
+    kopf: 'from-nx-green/20',
+    badge: 'green',
+  },
+  Experiment: {
+    icon: FlaskConical,
+    kachel: 'bg-nx-magenta/15 text-nx-magenta',
+    balken: 'bg-nx-magenta',
+    punkt: 'bg-nx-magenta',
+    plural: 'Experimente',
+    hover: 'hover:border-nx-magenta/50 hover:shadow-[0_0_28px_-10px_rgb(232_121_249/0.6)]',
+    kopf: 'from-nx-magenta/20',
+    badge: 'magenta',
+  },
 }
 
 type Ansicht = 'regal' | 'galerie' | 'liste'
@@ -50,7 +107,22 @@ function fortschritt(p: Projekt) {
   return { gesamt, erledigt, prozent: gesamt === 0 ? 0 : Math.round((erledigt / gesamt) * 100) }
 }
 
-function Fortschritt({ p }: { p: Projekt }) {
+function TypKachel({ typ, gross }: { typ: ProjektTyp; gross?: boolean }) {
+  const stil = typStil[typ]
+  const Icon = stil.icon
+  return (
+    <span
+      aria-hidden
+      className={`grid shrink-0 place-items-center rounded-lg ${stil.kachel} ${
+        gross ? 'h-12 w-12' : 'h-10 w-10'
+      }`}
+    >
+      <Icon size={gross ? 24 : 20} />
+    </span>
+  )
+}
+
+function FortschrittBalken({ p }: { p: Projekt }) {
   const f = fortschritt(p)
   if (f.gesamt === 0) {
     return <p className="text-xs text-nx-muted">{de.projekte.keineAufgabenKurz}</p>
@@ -63,40 +135,67 @@ function Fortschritt({ p }: { p: Projekt }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={de.projekte.aufgabenZaehler(f.erledigt, f.gesamt)}
-        className="h-1 overflow-hidden rounded-full bg-nx-text/10"
+        className="h-1 overflow-hidden rounded-full bg-white/10"
       >
-        <div className={`h-full ${typStil[p.typ].balken}`} style={{ width: `${f.prozent}%` }} />
+        <div
+          className={`h-full rounded-full ${typStil[p.typ].balken}`}
+          style={{ width: `${f.prozent}%` }}
+        />
       </div>
       <p className="text-xs text-nx-muted">{de.projekte.aufgabenZaehler(f.erledigt, f.gesamt)}</p>
     </div>
   )
 }
 
-function Karte({ p, gross }: { p: Projekt; gross: boolean }) {
+function Technologien({ p }: { p: Projekt }) {
   return (
-    <Link
-      to={`/projekte/${p.id}`}
-      className="grid overflow-hidden rounded-lg border border-nx-line bg-nx-panel transition-colors hover:border-nx-text/30"
-    >
-      <div className={`bg-gradient-to-br ${typStil[p.typ].kopf} ${gross ? 'h-24' : 'h-2'}`} />
-      <div className="grid gap-3 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <p className="min-w-0 truncate font-medium">{p.name}</p>
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex min-w-0 flex-wrap gap-1">
+        {p.technologien.slice(0, 3).map((t) => (
+          <Badge key={t}>{t}</Badge>
+        ))}
+      </div>
+      <span className="shrink-0 text-xs text-nx-muted">{vorZeit(p.geaendertAm)}</span>
+    </div>
+  )
+}
+
+const karteBasis = 'rounded-lg border border-nx-line bg-nx-panel transition-all duration-200'
+
+function Karte({ p, gross }: { p: Projekt; gross: boolean }) {
+  const stil = typStil[p.typ]
+
+  if (gross) {
+    return (
+      <Link to={`/projekte/${p.id}`} className={`grid overflow-hidden ${karteBasis} ${stil.hover}`}>
+        <div className={`flex items-center justify-between bg-gradient-to-b ${stil.kopf} to-transparent p-4`}>
+          <TypKachel typ={p.typ} gross />
           <Badge farbe={statusFarbe[p.status]}>{p.status}</Badge>
         </div>
-        <p className="line-clamp-2 min-h-10 text-sm text-nx-muted">
-          {p.beschreibung || de.projekte.keineBeschreibung}
-        </p>
-        <Fortschritt p={p} />
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-wrap gap-1">
-            {p.technologien.slice(0, 3).map((t) => (
-              <Badge key={t}>{t}</Badge>
-            ))}
-          </div>
-          <span className="shrink-0 text-xs text-nx-muted">{vorZeit(p.geaendertAm)}</span>
+        <div className="grid gap-3 p-4 pt-0">
+          <p className="truncate font-medium">{p.name}</p>
+          <p className="line-clamp-2 min-h-10 text-sm text-nx-muted">
+            {p.beschreibung || de.projekte.keineBeschreibung}
+          </p>
+          <FortschrittBalken p={p} />
+          <Technologien p={p} />
         </div>
+      </Link>
+    )
+  }
+
+  return (
+    <Link to={`/projekte/${p.id}`} className={`grid gap-3 p-4 ${karteBasis} ${stil.hover}`}>
+      <div className="flex items-center gap-3">
+        <TypKachel typ={p.typ} />
+        <p className="min-w-0 flex-1 truncate font-medium">{p.name}</p>
+        <Badge farbe={statusFarbe[p.status]}>{p.status}</Badge>
       </div>
+      <p className="line-clamp-2 min-h-10 text-sm text-nx-muted">
+        {p.beschreibung || de.projekte.keineBeschreibung}
+      </p>
+      <FortschrittBalken p={p} />
+      <Technologien p={p} />
     </Link>
   )
 }
@@ -200,8 +299,8 @@ export function Projekte() {
       aria-pressed={ansicht === wert}
       className={`rounded-md px-3 py-1 text-sm transition-colors ${
         ansicht === wert
-          ? 'bg-nx-violet/15 text-nx-text'
-          : 'text-nx-muted hover:bg-nx-text/10 hover:text-nx-text'
+          ? 'bg-nx-violet/20 text-nx-text'
+          : 'text-nx-muted hover:bg-white/5 hover:text-nx-text'
       }`}
     >
       {text}
@@ -291,8 +390,7 @@ export function Projekte() {
       ) : null}
 
       {projekte.length === 0 ? (
-        <Card className="grid justify-items-start gap-3">
-          <FolderKanban size={16} className="text-nx-muted" />
+        <Card className="grid justify-items-start gap-4">
           <div>
             <p className="text-sm font-medium">{de.projekte.leerTitel}</p>
             <p className="mt-1 text-sm text-nx-muted">{de.projekte.leerText}</p>
@@ -315,8 +413,13 @@ export function Projekte() {
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="min-w-48 max-w-sm flex-1">
+            <div className="relative min-w-48 max-w-sm flex-1">
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-nx-muted"
+              />
               <Input
+                className="pl-9"
                 value={suche}
                 onChange={(e) => setSuche(e.target.value)}
                 placeholder={de.projekte.suchen}
@@ -355,17 +458,17 @@ export function Projekte() {
                 type="button"
                 onClick={() => setArchivModus((a) => !a)}
                 aria-pressed={archivModus}
-                className={`inline-flex items-center gap-2 rounded-md px-3 py-1 text-sm transition-colors ${
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${
                   archivModus
                     ? 'bg-nx-cyan/15 text-nx-cyan'
-                    : 'text-nx-muted hover:bg-nx-text/10 hover:text-nx-text'
+                    : 'text-nx-muted hover:bg-white/5 hover:text-nx-text'
                 }`}
               >
                 <Archive size={16} />
                 {de.projekte.archiv}
                 <span className="font-mono text-xs">{anzahlArchiv}</span>
               </button>
-              <div className="flex gap-1">
+              <div className="flex gap-1 rounded-lg border border-nx-line bg-white/5 p-1">
                 {umschalter('regal', de.projekte.ansichtRegal)}
                 {umschalter('galerie', de.projekte.ansichtGalerie)}
                 {umschalter('liste', de.projekte.ansichtListe)}
@@ -394,10 +497,14 @@ export function Projekte() {
                   const gruppe = treffer.filter((p) => p.typ === t)
                   return (
                     <section key={t} className="grid gap-3">
-                      <h2 className="flex items-center gap-2 text-sm font-semibold">
-                        <span className={`h-2 w-2 rounded-full ${typStil[t].balken}`} />
+                      <h2 className="flex items-center gap-3 text-sm font-semibold">
+                        <span className={`h-2 w-2 rounded-full ${typStil[t].punkt}`} />
                         {typStil[t].plural}
                         <span className="font-mono text-xs text-nx-muted">{gruppe.length}</span>
+                        <span
+                          aria-hidden
+                          className="h-px flex-1 bg-gradient-to-r from-nx-line to-transparent"
+                        />
                       </h2>
                       <div className="grid grid-cols-3 gap-4">
                         {gruppe.map((p) => (
@@ -420,28 +527,32 @@ export function Projekte() {
                 <li key={p.id}>
                   <Link
                     to={`/projekte/${p.id}`}
-                    className="grid gap-3 rounded-lg border border-nx-line bg-nx-panel p-4 transition-colors hover:border-nx-text/25"
+                    className={`grid grid-cols-[auto_1fr] items-center gap-4 p-4 ${karteBasis} ${typStil[p.typ].hover}`}
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <p className="font-medium">{p.name}</p>
-                        <p className="mt-1 text-sm text-nx-muted">
-                          {p.beschreibung || de.projekte.keineBeschreibung}
-                        </p>
+                    <TypKachel typ={p.typ} />
+                    <div className="grid min-w-0 gap-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="font-medium">{p.name}</p>
+                          <p className="mt-1 text-sm text-nx-muted">
+                            {p.beschreibung || de.projekte.keineBeschreibung}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <Badge farbe={typStil[p.typ].badge}>{p.typ}</Badge>
+                          <Badge farbe={statusFarbe[p.status]}>{p.status}</Badge>
+                        </div>
                       </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <Badge farbe="violet">{p.typ}</Badge>
-                        <Badge farbe={statusFarbe[p.status]}>{p.status}</Badge>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex flex-wrap gap-2">
+                          {p.technologien.map((t) => (
+                            <Badge key={t}>{t}</Badge>
+                          ))}
+                        </div>
+                        <span className="shrink-0 text-xs text-nx-muted">
+                          {vorZeit(p.geaendertAm)}
+                        </span>
                       </div>
-                    </div>
-                    <Fortschritt p={p} />
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex flex-wrap gap-2">
-                        {p.technologien.map((t) => (
-                          <Badge key={t}>{t}</Badge>
-                        ))}
-                      </div>
-                      <span className="shrink-0 text-xs text-nx-muted">{vorZeit(p.geaendertAm)}</span>
                     </div>
                   </Link>
                 </li>

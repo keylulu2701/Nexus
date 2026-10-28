@@ -93,10 +93,11 @@
 /* Weicher Nebel im Hintergrund, statisch */
 .nx-nebel {
   background:
-    radial-gradient(60rem 38rem at 88% -8%, rgb(var(--nebel-1) / 0.2), transparent 62%),
-    radial-gradient(52rem 38rem at -8% 108%, rgb(var(--nebel-2) / 0.14), transparent 62%),
-    radial-gradient(44rem 30rem at 62% 104%, rgb(var(--nebel-3) / 0.08), transparent 66%);
+    radial-gradient(60rem 38rem at 88% -8%, rgb(var(--nebel-1) / 0.3), transparent 62%),
+    radial-gradient(52rem 38rem at -8% 108%, rgb(var(--nebel-2) / 0.22), transparent 62%),
+    radial-gradient(44rem 30rem at 62% 104%, rgb(var(--nebel-3) / 0.13), transparent 66%);
 }
+
 
 /* Leiste oben: Platz für die Fenster-Knöpfe der Desktop-App lassen */
 .nx-kopf {
