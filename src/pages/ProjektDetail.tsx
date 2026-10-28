@@ -1,7 +1,19 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, Circle, Pencil, Plus, Trash2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  Check,
+  Circle,
+  FlaskConical,
+  Gamepad2,
+  Globe,
+  Pencil,
+  Plus,
+  Smartphone,
+  Trash2,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
@@ -20,9 +32,10 @@ import {
   projektLoeschen,
   projektStatusSetzen,
   stati,
+  statusFarbe,
   useProjekte,
 } from '../data/speicher'
-import type { ProjektStatus } from '../data/speicher'
+import type { ProjektStatus, ProjektTyp } from '../data/speicher'
 import { vorZeit } from '../data/zeit'
 import { de } from '../i18n/de'
 import { bearbeitenTexte } from '../i18n/bearbeiten'
@@ -31,7 +44,18 @@ const zurueck =
   'inline-flex items-center gap-2 rounded-sm text-sm text-nx-muted transition-colors hover:text-nx-text'
 
 const auswahl =
-  'h-9 rounded-md border border-nx-line bg-nx-bg px-3 text-sm text-nx-text [color-scheme:dark] hover:border-nx-text/25'
+  'h-9 rounded-md border border-nx-line bg-nx-bg/70 px-3 text-sm text-nx-text [color-scheme:dark] transition-colors hover:border-nx-violet/40'
+
+const typStil: Record<ProjektTyp, { icon: LucideIcon; kachel: string; balken: string }> = {
+  Spiel: { icon: Gamepad2, kachel: 'bg-nx-violet/15 text-nx-violet', balken: 'bg-nx-violet' },
+  Webseite: { icon: Globe, kachel: 'bg-nx-cyan/15 text-nx-cyan', balken: 'bg-nx-cyan' },
+  App: { icon: Smartphone, kachel: 'bg-nx-green/15 text-nx-green', balken: 'bg-nx-green' },
+  Experiment: {
+    icon: FlaskConical,
+    kachel: 'bg-nx-magenta/15 text-nx-magenta',
+    balken: 'bg-nx-magenta',
+  },
+}
 
 type Ansicht = 'liste' | 'board'
 const ANSICHT_KEY = 'nexus.aufgabenansicht'
@@ -66,6 +90,12 @@ export function ProjektDetail() {
     )
   }
 
+  const stil = typStil[projekt.typ]
+  const TypIcon = stil.icon
+  const gesamt = projekt.aufgaben.length
+  const erledigt = projekt.aufgaben.filter((a) => aufgabenStatus(a) === 'Erledigt').length
+  const prozent = gesamt === 0 ? 0 : Math.round((erledigt / gesamt) * 100)
+
   function ansichtWaehlen(a: Ansicht) {
     setAnsicht(a)
     try {
@@ -98,8 +128,8 @@ export function ProjektDetail() {
       aria-pressed={ansicht === wert}
       className={`rounded-md px-3 py-1 text-sm transition-colors ${
         ansicht === wert
-          ? 'bg-nx-violet/15 text-nx-text'
-          : 'text-nx-muted hover:bg-nx-text/10 hover:text-nx-text'
+          ? 'bg-nx-violet/20 text-nx-text'
+          : 'text-nx-muted hover:bg-white/5 hover:text-nx-text'
       }`}
     >
       {text}
@@ -141,6 +171,38 @@ export function ProjektDetail() {
       {projekt.archiviert ? (
         <p className="text-sm text-nx-cyan">{de.projekte.archiviertHinweis}</p>
       ) : null}
+
+      <Card className="flex items-center gap-4">
+        <span
+          aria-hidden
+          className={`grid h-12 w-12 shrink-0 place-items-center rounded-lg ${stil.kachel}`}
+        >
+          <TypIcon size={24} />
+        </span>
+        <div className="grid min-w-0 flex-1 gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Badge farbe={statusFarbe[projekt.status]}>{projekt.status}</Badge>
+              <span className="text-sm text-nx-muted">{projekt.typ}</span>
+            </div>
+            <span className="text-xs text-nx-muted">
+              {gesamt === 0
+                ? de.projekte.keineAufgabenKurz
+                : de.projekte.aufgabenZaehler(erledigt, gesamt)}
+            </span>
+          </div>
+          <div
+            role="progressbar"
+            aria-valuenow={prozent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={de.projekte.aufgaben}
+            className="h-1.5 overflow-hidden rounded-full bg-white/10"
+          >
+            <div className={`h-full rounded-full ${stil.balken}`} style={{ width: `${prozent}%` }} />
+          </div>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 grid content-start">
@@ -189,7 +251,7 @@ export function ProjektDetail() {
       <Card className="grid gap-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-sm font-semibold">{de.projekte.aufgaben}</h2>
-          <div className="flex gap-1">
+          <div className="flex gap-1 rounded-lg border border-nx-line bg-white/5 p-1">
             {umschalter('board', de.projekte.ansichtBoard)}
             {umschalter('liste', de.projekte.ansichtListe)}
           </div>
@@ -215,20 +277,20 @@ export function ProjektDetail() {
         ) : (
           <ul className="grid gap-1">
             {projekt.aufgaben.map((a) => {
-              const erledigt = aufgabenStatus(a) === 'Erledigt'
+              const fertig = aufgabenStatus(a) === 'Erledigt'
               return (
                 <li key={a.id} className="flex items-center justify-between gap-3">
                   <button
                     type="button"
                     onClick={() => aufgabeUmschalten(projekt.id, a.id)}
-                    className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-nx-text/10"
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-white/5"
                   >
-                    {erledigt ? (
+                    {fertig ? (
                       <Check size={16} className="shrink-0 text-nx-green" />
                     ) : (
                       <Circle size={16} className="shrink-0 text-nx-muted" />
                     )}
-                    <span className={erledigt ? 'text-nx-muted line-through' : ''}>{a.text}</span>
+                    <span className={fertig ? 'text-nx-muted line-through' : ''}>{a.text}</span>
                   </button>
                   <Button
                     variante="ghost"

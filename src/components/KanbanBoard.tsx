@@ -9,14 +9,14 @@ import {
 import type { Aufgabe, AufgabeStatus } from '../data/speicher'
 import { de } from '../i18n/de'
 
-const punkt: Record<AufgabeStatus, string> = {
-  Offen: 'bg-nx-muted',
-  'In Arbeit': 'bg-nx-cyan',
-  Erledigt: 'bg-nx-green',
+const stil: Record<AufgabeStatus, { punkt: string; linie: string }> = {
+  Offen: { punkt: 'bg-nx-muted', linie: 'from-nx-muted/50' },
+  'In Arbeit': { punkt: 'bg-nx-cyan', linie: 'from-nx-cyan/60' },
+  Erledigt: { punkt: 'bg-nx-green', linie: 'from-nx-green/60' },
 }
 
 const knopf =
-  'rounded-sm p-1 text-nx-muted transition-colors hover:bg-nx-text/10 hover:text-nx-text disabled:cursor-not-allowed disabled:opacity-30'
+  'rounded-sm p-1 text-nx-muted transition-colors hover:bg-white/10 hover:text-nx-text disabled:cursor-not-allowed disabled:opacity-30'
 
 export function KanbanBoard({ projektId, aufgaben }: { projektId: string; aufgaben: Aufgabe[] }) {
   const [ueber, setUeber] = useState<AufgabeStatus | null>(null)
@@ -39,12 +39,16 @@ export function KanbanBoard({ projektId, aufgaben }: { projektId: string; aufgab
               const id = e.dataTransfer.getData('text/plain')
               if (id) aufgabeStatusSetzen(projektId, id, s)
             }}
-            className={`grid content-start gap-3 rounded-lg border p-3 transition-colors ${
+            className={`grid content-start gap-3 overflow-hidden rounded-lg border p-3 transition-colors ${
               ueber === s ? 'border-nx-cyan/60 bg-nx-cyan/5' : 'border-nx-line bg-nx-bg/40'
             }`}
           >
+            <div
+              aria-hidden
+              className={`-mx-3 -mt-3 h-0.5 bg-gradient-to-r ${stil[s].linie} to-transparent`}
+            />
             <div className="flex items-center gap-2 text-sm font-medium">
-              <span className={`h-2 w-2 rounded-full ${punkt[s]}`} />
+              <span className={`h-2 w-2 rounded-full ${stil[s].punkt}`} />
               {s}
               <span className="font-mono text-xs text-nx-muted">{inSpalte.length}</span>
             </div>
@@ -60,7 +64,7 @@ export function KanbanBoard({ projektId, aufgaben }: { projektId: string; aufgab
                     e.dataTransfer.setData('text/plain', a.id)
                     e.dataTransfer.effectAllowed = 'move'
                   }}
-                  className="grid cursor-grab gap-2 rounded-md border border-nx-line bg-nx-panel p-3 active:cursor-grabbing"
+                  className="grid cursor-grab gap-2 rounded-md border border-nx-line bg-nx-panel p-3 transition-colors hover:border-nx-violet/40 active:cursor-grabbing"
                 >
                   <p className={`text-sm ${s === 'Erledigt' ? 'text-nx-muted line-through' : ''}`}>
                     {a.text}
