@@ -11,16 +11,41 @@ import {
   Sparkles,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { Logo } from '../components/Logo'
 import { de } from '../i18n/de'
 
 const SPEICHER_KEY = 'nexus.seitenleiste.eingeklappt'
 
-const eintraege: { pfad: string; titel: string; icon: LucideIcon; ende?: boolean }[] = [
-  { pfad: '/', titel: de.nav.uebersicht.titel, icon: LayoutDashboard, ende: true },
-  { pfad: '/projekte', titel: de.nav.projekte.titel, icon: FolderKanban },
-  { pfad: '/ki', titel: de.nav.ki.titel, icon: Sparkles },
-  { pfad: '/ideen', titel: de.nav.ideen.titel, icon: Lightbulb },
-  { pfad: '/wissen', titel: de.nav.wissen.titel, icon: BookOpen },
+type Akzent = 'violet' | 'cyan' | 'magenta' | 'blue'
+
+const akzentIcon: Record<Akzent, string> = {
+  violet: 'text-nx-violet',
+  cyan: 'text-nx-cyan',
+  magenta: 'text-nx-magenta',
+  blue: 'text-nx-blue',
+}
+
+const akzentBalken: Record<Akzent, string> = {
+  violet: 'bg-nx-violet',
+  cyan: 'bg-nx-cyan',
+  magenta: 'bg-nx-magenta',
+  blue: 'bg-nx-blue',
+}
+
+type Eintrag = {
+  pfad: string
+  titel: string
+  icon: LucideIcon
+  akzent: Akzent
+  ende?: boolean
+}
+
+const eintraege: Eintrag[] = [
+  { pfad: '/', titel: de.nav.uebersicht.titel, icon: LayoutDashboard, akzent: 'violet', ende: true },
+  { pfad: '/projekte', titel: de.nav.projekte.titel, icon: FolderKanban, akzent: 'violet' },
+  { pfad: '/ki', titel: de.nav.ki.titel, icon: Sparkles, akzent: 'cyan' },
+  { pfad: '/ideen', titel: de.nav.ideen.titel, icon: Lightbulb, akzent: 'magenta' },
+  { pfad: '/wissen', titel: de.nav.wissen.titel, icon: BookOpen, akzent: 'blue' },
 ]
 
 function ladeZustand(): boolean {
@@ -32,6 +57,44 @@ function ladeZustand(): boolean {
 }
 
 const basis = 'flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors'
+
+function NavEintrag({
+  eintrag,
+  eingeklappt,
+  klasse = '',
+}: {
+  eintrag: Eintrag
+  eingeklappt: boolean
+  klasse?: string
+}) {
+  const { pfad, titel, icon: Icon, akzent, ende } = eintrag
+  return (
+    <NavLink
+      to={pfad}
+      end={ende}
+      title={eingeklappt ? titel : undefined}
+      aria-label={titel}
+      className={({ isActive }) =>
+        `${basis} relative ${klasse} ${
+          isActive ? 'nx-aktiv text-nx-text' : 'text-nx-muted hover:bg-white/5 hover:text-nx-text'
+        }`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          <span
+            aria-hidden
+            className={`absolute bottom-2 left-0 top-2 w-0.5 rounded-full transition-opacity ${akzentBalken[akzent]} ${
+              isActive ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+          <Icon size={16} className={`shrink-0 ${isActive ? akzentIcon[akzent] : ''}`} />
+          {eingeklappt ? null : <span className="truncate">{titel}</span>}
+        </>
+      )}
+    </NavLink>
+  )
+}
 
 export function Sidebar() {
   const [eingeklappt, setEingeklappt] = useState(ladeZustand)
@@ -47,50 +110,36 @@ export function Sidebar() {
     })
   }
 
-  function linkKlasse({ isActive }: { isActive: boolean }) {
-    return `${basis} ${
-      isActive
-        ? 'bg-nx-violet/15 text-nx-text'
-        : 'text-nx-muted hover:bg-nx-text/10 hover:text-nx-text'
-    }`
-  }
-
   return (
     <aside
-      className={`flex shrink-0 flex-col border-r border-nx-line bg-nx-bg p-2 transition-[width] ${
+      className={`flex shrink-0 flex-col border-r border-nx-line bg-nx-bg/60 p-2 backdrop-blur-md transition-[width] ${
         eingeklappt ? 'w-14' : 'w-60'
       }`}
     >
-      <div className="flex h-10 items-center px-3">
-        <span className="font-mono text-sm font-medium tracking-wide text-nx-violet">
-          {eingeklappt ? 'N' : de.app.name}
-        </span>
+      <div className="nx-drag flex h-10 items-center gap-3 px-2">
+        <Logo groesse={26} />
+        {eingeklappt ? null : (
+          <span className="nx-titel font-mono text-sm font-semibold tracking-[0.2em]">
+            {de.app.name}
+          </span>
+        )}
       </div>
 
       <nav aria-label={de.shell.hauptnavigation} className="mt-4 flex flex-1 flex-col gap-1">
-        {eintraege.map(({ pfad, titel, icon: Icon, ende }) => (
-          <NavLink
-            key={pfad}
-            to={pfad}
-            end={ende}
-            title={eingeklappt ? titel : undefined}
-            aria-label={titel}
-            className={linkKlasse}
-          >
-            <Icon size={16} className="shrink-0" />
-            {eingeklappt ? null : <span className="truncate">{titel}</span>}
-          </NavLink>
+        {eintraege.map((e) => (
+          <NavEintrag key={e.pfad} eintrag={e} eingeklappt={eingeklappt} />
         ))}
 
-        <NavLink
-          to="/einstellungen"
-          title={eingeklappt ? de.nav.einstellungen.titel : undefined}
-          aria-label={de.nav.einstellungen.titel}
-          className={(s) => `${linkKlasse(s)} mt-auto`}
-        >
-          <Settings size={16} className="shrink-0" />
-          {eingeklappt ? null : <span className="truncate">{de.nav.einstellungen.titel}</span>}
-        </NavLink>
+        <NavEintrag
+          eintrag={{
+            pfad: '/einstellungen',
+            titel: de.nav.einstellungen.titel,
+            icon: Settings,
+            akzent: 'violet',
+          }}
+          eingeklappt={eingeklappt}
+          klasse="mt-auto"
+        />
       </nav>
 
       <button
@@ -98,7 +147,7 @@ export function Sidebar() {
         onClick={umschalten}
         aria-label={eingeklappt ? de.shell.seitenleisteAusklappen : de.shell.seitenleisteEinklappen}
         title={eingeklappt ? de.shell.seitenleisteAusklappen : de.shell.seitenleisteEinklappen}
-        className={`${basis} mt-2 text-nx-muted hover:bg-nx-text/10 hover:text-nx-text`}
+        className={`${basis} mt-2 text-nx-muted hover:bg-white/5 hover:text-nx-text`}
       >
         {eingeklappt ? (
           <PanelLeftOpen size={16} className="shrink-0" />

@@ -85,8 +85,10 @@ function fensterErstellen() {
     height: 900,
     minWidth: 1024,
     minHeight: 640,
-    backgroundColor: '#0B0D14',
+    backgroundColor: '#080814',
     autoHideMenuBar: true,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: { color: '#0a0914', symbolColor: '#f5f3ff', height: 56 },
     icon: path.join(__dirname, '..', 'build', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),

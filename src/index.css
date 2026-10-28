@@ -1,14 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-nx-bg: #0b0d14;
-  --color-nx-panel: #171824;
+  --color-nx-bg: #080814;
+  --color-nx-bar: #0a0914;
+  --color-nx-panel: rgb(21 18 40 / 0.78);
   --color-nx-violet: #9d6bff;
+  --color-nx-magenta: #e879f9;
+  --color-nx-lilac: #c4b5fd;
+  --color-nx-blue: #6ea8ff;
   --color-nx-cyan: #22e5ff;
   --color-nx-green: #3dff9a;
   --color-nx-text: #f5f3ff;
-  --color-nx-muted: #9ca3af;
-  --color-nx-line: rgb(245 243 255 / 0.1);
+  --color-nx-muted: #a6a4c0;
+  --color-nx-line: rgb(167 139 250 / 0.16);
 
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -19,16 +23,127 @@
 }
 
 @layer base {
+  :root {
+    --nebel-1: 139 92 246;
+    --nebel-2: 232 121 249;
+    --nebel-3: 34 229 255;
+    --nx-akzent: #9d6bff;
+  }
+
+  /* Jeder Bereich hat einen eigenen leichten Farbton */
+  [data-sektor="uebersicht"] {
+    --nebel-1: 139 92 246;
+    --nebel-2: 232 121 249;
+    --nebel-3: 34 229 255;
+    --nx-akzent: #9d6bff;
+  }
+  [data-sektor="projekte"] {
+    --nebel-1: 157 107 255;
+    --nebel-2: 99 102 241;
+    --nebel-3: 232 121 249;
+    --nx-akzent: #9d6bff;
+  }
+  [data-sektor="ki"] {
+    --nebel-1: 34 211 238;
+    --nebel-2: 99 102 241;
+    --nebel-3: 157 107 255;
+    --nx-akzent: #22e5ff;
+  }
+  [data-sektor="ideen"] {
+    --nebel-1: 232 121 249;
+    --nebel-2: 244 114 182;
+    --nebel-3: 157 107 255;
+    --nx-akzent: #e879f9;
+  }
+  [data-sektor="wissen"] {
+    --nebel-1: 110 168 255;
+    --nebel-2: 99 102 241;
+    --nebel-3: 34 229 255;
+    --nx-akzent: #6ea8ff;
+  }
+  [data-sektor="einstellungen"] {
+    --nebel-1: 139 120 200;
+    --nebel-2: 99 102 241;
+    --nebel-3: 157 107 255;
+    --nx-akzent: #c4b5fd;
+  }
+
   body {
     background-color: var(--color-nx-bg);
     color: var(--color-nx-text);
     font-family: var(--font-sans);
   }
 
+  ::selection {
+    background: rgb(157 107 255 / 0.35);
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-nx-violet);
     outline-offset: 2px;
   }
+
+  /* Schlanke, dunkle Scrollleisten */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(167 139 250 / 0.28) transparent;
+  }
+}
+
+/* Weicher Nebel im Hintergrund, statisch */
+.nx-nebel {
+  background:
+    radial-gradient(60rem 38rem at 88% -8%, rgb(var(--nebel-1) / 0.2), transparent 62%),
+    radial-gradient(52rem 38rem at -8% 108%, rgb(var(--nebel-2) / 0.14), transparent 62%),
+    radial-gradient(44rem 30rem at 62% 104%, rgb(var(--nebel-3) / 0.08), transparent 66%);
+}
+
+/* Leiste oben: Platz für die Fenster-Knöpfe der Desktop-App lassen */
+.nx-kopf {
+  padding-right: max(24px, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw) + 16px));
+}
+
+@utility nx-drag {
+  -webkit-app-region: drag;
+}
+
+@utility nx-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Überschrift mit leichtem Verlauf */
+@utility nx-titel {
+  background-image: linear-gradient(90deg, #ffffff, var(--color-nx-lilac));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Hauptknopf */
+@utility nx-knopf {
+  background-image: linear-gradient(135deg, #9d6bff, #c05ff0);
+  box-shadow:
+    0 0 22px -8px rgb(157 107 255 / 0.8),
+    inset 0 1px 0 rgb(255 255 255 / 0.18);
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.1);
+  }
+
+  &:active:not(:disabled) {
+    filter: brightness(0.95);
+  }
+
+  &:disabled {
+    box-shadow: none;
+    filter: saturate(0.6);
+  }
+}
+
+/* Aktiver Menüpunkt */
+@utility nx-aktiv {
+  background-image: linear-gradient(90deg, rgb(157 107 255 / 0.2), rgb(157 107 255 / 0.05));
+  box-shadow: 0 0 24px -10px rgb(157 107 255 / 0.8);
 }
 
 @utility glow-violet {

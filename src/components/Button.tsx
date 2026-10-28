@@ -7,9 +7,10 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 }
 
 const stile: Record<Variante, string> = {
-  primaer: 'bg-nx-violet text-white hover:bg-nx-violet/85',
-  sekundaer: 'border border-nx-line bg-nx-panel text-nx-text hover:bg-nx-text/10',
-  ghost: 'text-nx-muted hover:bg-nx-text/10 hover:text-nx-text',
+  primaer: 'nx-knopf text-white',
+  sekundaer:
+    'border border-nx-line bg-white/5 text-nx-text hover:border-nx-violet/40 hover:bg-nx-violet/10',
+  ghost: 'text-nx-muted hover:bg-white/10 hover:text-nx-text',
 }
 
 export function Button({ variante = 'primaer', className = '', ...rest }: ButtonProps) {
